@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>병원 스케줄 관리 시스템</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 병원 스케줄 관리 시스템</h1>
+            <button class="help-btn" onclick="showLegendModal()" title="색상 설명">?</button>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="patient-form">
+                    <h3>새 환자 등록</h3>
+                    <div class="form-group">
+                        <label>환자명</label>
+                        <input type="text" id="patientName" placeholder="환자명">
+                    </div>
+                    <div class="form-group">
+                        <label>성별</label>
+                        <select id="patientGender">
+                            <option value="male">남성</option>
+                            <option value="female">여성</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>진료과/상태</label>
+                        <select id="patientCondition">
+                            <option value="암">암</option>
+                            <option value="재활">재활</option>
+                            <option value="일반">일반</option>
+                            <option value="수술">수술</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>입원 시작일</label>
+                        <input type="date" id="admissionDate">
+                    </div>
+                    <div class="form-group">
+                        <label>입원 기간 (일)</label>
+                        <input type="number" id="duration" placeholder="14" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>병실타입</label>
+                        <select id="roomType">
+                            <option value="any">상관없음</option>
+                            <option value="1인실">1인실</option>
+                            <option value="2인실">2인실</option>
+                            <option value="4인실">4인실</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>특이사항</label>
+                        <textarea id="patientNotes" placeholder="알레르기, 특별 요구사항 등"></textarea>
+                    </div>
+                    <button class="btn" onclick="findRecommendations()">병실 추천받기</button>
+                    <button class="btn btn-secondary" onclick="addPatient()">환자 등록</button>
+                </div>
+                
+                <div id="recommendations" style="display: none;"></div>
+            </div>
+
+            <div class="schedule-area">
+                <div class="schedule-header">
+                    <div class="date-nav">
+                        <button class="nav-btn" onclick="moveDate(-10)" title="10일 이전">&lt;&lt;</button>
+                        <button class="nav-btn" onclick="moveDate(-1)" title="1일 이전">&lt;</button>
+                        <span class="date-range" id="dateRange"></span>
+                        <button class="nav-btn" onclick="moveDate(1)" title="1일 이후">&gt;</button>
+                        <button class="nav-btn" onclick="moveDate(10)" title="10일 이후">&gt;&gt;</button>
+                    </div>
+                </div>
+
+                <div class="schedule-container">
+                    <div class="schedule-table-wrapper">
+                        <table class="schedule-table" id="scheduleTable">
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="legend-modal" id="legendModal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeLegendModal()">&times;</span>
+            <h3>색상 설명</h3>
+            <div class="legend">
+                <div class="legend-section">
+                    <h4>점유율</h4>
+                    <div class="legend-item">
+                        <div class="legend-color occupancy-0-male"></div>
+                        <span>빈 병실</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color occupancy-50-male"></div>
+                        <span>부분 점유 (빗금)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color occupancy-100-male"></div>
+                        <span>만실 (남성)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color occupancy-100-female"></div>
+                        <span>만실 (여성)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color status-reserved-demo-male"></div>
+                        <span>예약 환자 (남성)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color status-reserved-demo-female"></div>
+                        <span>예약 환자 (여성)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color mixed-status-demo"></div>
+                        <span>혼합 상태 (입원+예약)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="patient-modal" id="patientModal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
