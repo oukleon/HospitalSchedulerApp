@@ -48,10 +48,24 @@ let patients = [
     {id: 5, name: '최준호', gender: 'male', condition: '재활', room: '1303', bedNumber: 2, admissionDate: '2025-08-22', dischargeDate: '2025-09-10', notes: '', status: 'reserved'}
 ];
 
-let currentStartDate = new Date(2025, 7, 15);
+let today = new Date();
+let currentStartDate = new Date(today);
+currentStartDate.setDate(today.getDate() - 2);
+
+// 입원 기간 달력 관련 변수
+let durationCalendarMonth = 7; // 0-based (8월)
+let durationCalendarYear = 2025;
+let isLongtermEnabled = false;
 
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('admissionDate').value = new Date().toISOString().split('T')[0];
+    const today = new Date();
+    document.getElementById('admissionDate').value = today.toISOString().split('T')[0];
+    
+    // 14일 후 날짜 계산
+    const dischargeDate = new Date(today);
+    dischargeDate.setDate(today.getDate() + 14);
+    document.getElementById('dischargeDate').value = dischargeDate.toISOString().split('T')[0];
+    
     generateScheduleTable();
 });
 
@@ -78,7 +92,8 @@ function generateScheduleTable() {
     dates.forEach(date => {
         const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
         const dayName = dayNames[date.getDay()];
-        html += `<th class="date-header">${date.getMonth() + 1}/${date.getDate()}<br><small>${dayName}</small></th>`;
+        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        html += `<th class="date-header" onclick="showDateSummary('${dateStr}')">${date.getMonth() + 1}/${date.getDate()}<br><small>${dayName}</small></th>`;
     });
     html += '</tr></thead>';
     
@@ -123,6 +138,97 @@ function generateScheduleTable() {
     
     html += '</tbody>';
     table.innerHTML = html;
+}
+
+function showDateSummary(dateStr) {
+    const [year, month, day] = dateStr.split('-');
+    const dateObj = new Date(year, month - 1, day);
+    const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+    const dayName = dayNames[dateObj.getDay()];
+    const formattedDate = `${year}년 ${month}월 ${day}일 ${dayName}`;
+
+    const floorData = getFloorSummaryByDate(dateStr);
+    
+    const modal = document.getElementById('dateSummaryModal');
+    const modalBody = document.getElementById('dateSummaryBody');
+    
+    let html = `<h3>${formattedDate} 환자 현황</h3>`;
+    
+    floorData.forEach(floor => {
+        html += `
+            <div class="floor-summary">
+                <h4>${floor.floorNumber}층 (${floor.department === 'rehabilitation' ? '재활' : '암'})</h4>
+                <div class="floor-stats">
+                    <span>총 환자: ${floor.totalPatients}명</span>
+                    <span>남성: ${floor.maleCount}명</span>
+                    <span>여성: ${floor.femaleCount}명</span>
+                    <span>남은 침대: ${floor.availableBeds}개</span>
+                </div>
+                <div class="patient-list">
+        `;
+        
+        if (floor.patients.length === 0) {
+            html += '<p class="no-patients">입원 환자 없음</p>';
+        } else {
+            floor.patients.forEach(patient => {
+                html += `
+                    <div class="patient-item" onclick="showPatientDetails(${patient.id})" style="cursor: pointer;">
+                        <strong>${patient.name}</strong> (${patient.gender === 'male' ? '남성' : '여성'}) - ${patient.room}호
+                        <br><small>${patient.condition} | ${patient.status === 'admitted' ? '입원중' : '예약'}</small>
+                    </div>
+                `;
+            });
+        }
+        
+        html += `</div></div>`;
+    });
+    
+    modalBody.innerHTML = html;
+    modal.style.display = 'flex';
+}
+
+function getFloorSummaryByDate(dateStr) {
+    const floors = [10, 11, 12, 13];
+    const floorData = [];
+    
+    floors.forEach(floorNumber => {
+        const floorRooms = rooms.filter(room => room.floor === floorNumber);
+        const floorPatients = [];
+        let totalCapacity = 0;
+        
+        floorRooms.forEach(room => {
+            totalCapacity += room.capacity;
+            const occupancyData = getRoomOccupancy(room.room, dateStr);
+            floorPatients.push(...occupancyData.patients);
+        });
+        
+        const maleCount = floorPatients.filter(p => p.gender === 'male').length;
+        const femaleCount = floorPatients.filter(p => p.gender === 'female').length;
+        const availableBeds = totalCapacity - floorPatients.length;
+        
+        floorData.push({
+            floorNumber: floorNumber,
+            department: floorRooms[0].department,
+            totalPatients: floorPatients.length,
+            maleCount: maleCount,
+            femaleCount: femaleCount,
+            availableBeds: availableBeds,
+            patients: floorPatients
+        });
+    });
+    
+    return floorData;
+}
+
+function closeDateSummaryModal() {
+    document.getElementById('dateSummaryModal').style.display = 'none';
+}
+
+// 모달 외부 클릭시 닫기
+document.getElementById('dateSummaryModal').onclick = function(event) {
+    if (event.target === this) {
+        closeDateSummaryModal();
+    }
 }
 
 function shouldShowText(previousOccupancy, currentOccupancy, dateIndex) {
@@ -176,7 +282,7 @@ function generateOccupancyBar(room, occupancyData, dateStr, showText) {
         displayText = '';
     } else if (reservedCount > 0 && admittedCount === 0) {
         occupancyClass = `status-reserved-${genderType}`;
-        displayText = showText ? (count === capacity ? '만실' : `${count}/${capacity}`) : '';
+        displayText = showText ? `${count}/${capacity}` : '';
     } else if (reservedCount > 0 && admittedCount > 0) {
         occupancyClass = `mixed-status-${genderType}`;
         displayText = showText ? `${count}/${capacity}` : '';
@@ -190,7 +296,7 @@ function generateOccupancyBar(room, occupancyData, dateStr, showText) {
         } else {
             occupancyClass = `occupancy-100-${genderType}`;
         }
-        displayText = showText ? (count === capacity ? '만실' : `${count}/${capacity}`) : '';
+        displayText = showText ? `${count}/${capacity}` : '';
     }
     
     return `<div class="occupancy-bar ${occupancyClass}">${displayText}</div>`;
@@ -241,7 +347,7 @@ function showRoomDetails(roomNumber, dateStr) {
         html += '<h4>입원 환자 목록:</h4>';
         occupancyData.patients.forEach(patient => {
             html += `
-                <div style="background: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 4px;">
+                <div style="background: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 4px; cursor: pointer;" onclick="showPatientDetails(${patient.id})">
                     <strong>${patient.name}</strong> (${patient.gender === 'male' ? '남성' : '여성'})<br>
                     <small>진료과: ${patient.condition} | 상태: ${patient.status === 'admitted' ? '입원중' : '예약'}</small><br>
                     <small>입원: ${patient.admissionDate} ~ ${patient.dischargeDate}</small>
@@ -268,19 +374,75 @@ function findRecommendations() {
     const gender = document.getElementById('patientGender').value;
     const condition = document.getElementById('patientCondition').value;
     const admissionDate = document.getElementById('admissionDate').value;
-    const duration = parseInt(document.getElementById('duration').value);
+    const duration = getDurationValue();
     
-    if (!name || !admissionDate || !duration) {
+    if (!name || !admissionDate || (!duration && !isLongtermEnabled)) {
         alert('필수 정보를 모두 입력해주세요.');
         return;
     }
     
     const startDate = new Date(admissionDate);
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + duration);
+    let endDate = null;
+    
+    if (!isLongtermEnabled && duration) {
+        endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + duration);
+    }
     
     const recommendations = getRecommendations(gender, startDate, endDate);
     displayRecommendations(recommendations);
+}
+
+function getDurationValue() {
+    if (isLongtermEnabled) return null;
+    const dischargeDate = document.getElementById('dischargeDate').value;
+    const admissionDate = document.getElementById('admissionDate').value;
+    
+    if (admissionDate && dischargeDate) {
+        const start = new Date(admissionDate);
+        const end = new Date(dischargeDate);
+        const diffTime = end - start;
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+    
+    return parseInt(document.getElementById('duration').value) || null;
+}
+
+function updateDischargeFromDuration() {
+    const admissionDate = document.getElementById('admissionDate').value;
+    const duration = parseInt(document.getElementById('duration').value);
+    
+    if (admissionDate && duration && !isLongtermEnabled) {
+        const startDate = new Date(admissionDate);
+        const endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + duration);
+        document.getElementById('dischargeDate').value = endDate.toISOString().split('T')[0];
+    }
+}
+
+function updateDurationFromDischarge() {
+    const admissionDate = document.getElementById('admissionDate').value;
+    const dischargeDate = document.getElementById('dischargeDate').value;
+    
+    if (admissionDate && dischargeDate && !isLongtermEnabled) {
+        const start = new Date(admissionDate);
+        const end = new Date(dischargeDate);
+        const diffTime = end - start;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays > 0) {
+            document.getElementById('duration').value = diffDays;
+        }
+    }
+}
+
+function toggleLongterm() {
+    isLongtermEnabled = document.getElementById('longtermCheck').checked;
+    const dischargeInput = document.getElementById('dischargeDate');
+    const durationSelect = document.getElementById('duration');
+    
+    dischargeInput.disabled = isLongtermEnabled;
+    durationSelect.disabled = isLongtermEnabled;
 }
 
 function getRecommendations(gender, startDate, endDate) {
@@ -330,6 +492,36 @@ function getRecommendations(gender, startDate, endDate) {
     });
     
     return scored.sort((a, b) => b.score - a.score).slice(0, 3);
+}
+
+function showPatientDetails(patientId) {
+    const patient = patients.find(p => p.id === patientId);
+    if (!patient) return;
+    
+    const genderText = patient.gender === 'male' ? '남성' : '여성';
+    const statusText = patient.status === 'admitted' ? '입원중' : '예약';
+    const room = rooms.find(r => r.room === patient.room);
+    const floorInfo = room ? `${room.floor}층 ${room.department === 'rehabilitation' ? '재활' : '암'}과` : '';
+    
+    const modal = document.getElementById('patientDetailModal');
+    const modalBody = document.getElementById('patientDetailBody');
+    
+    let html = `
+        <h3>환자 상세 정보</h3>
+        <div class="patient-details">
+            <div class="detail-row"><strong>환자명:</strong> ${patient.name}</div>
+            <div class="detail-row"><strong>성별:</strong> ${genderText}</div>
+            <div class="detail-row"><strong>진료과:</strong> ${patient.condition}</div>
+            <div class="detail-row"><strong>병실:</strong> ${patient.room}호 (${floorInfo})</div>
+            <div class="detail-row"><strong>상태:</strong> ${statusText}</div>
+            <div class="detail-row"><strong>입원일:</strong> ${patient.admissionDate}</div>
+            <div class="detail-row"><strong>퇴원일:</strong> ${patient.dischargeDate || '미정 (장기입원)'}</div>
+            ${patient.notes ? `<div class="detail-row"><strong>특이사항:</strong> ${patient.notes}</div>` : ''}
+        </div>
+    `;
+    
+    modalBody.innerHTML = html;
+    modal.style.display = 'flex';
 }
 
 function getRoomGender(roomNumber, startDate, endDate) {
@@ -394,13 +586,17 @@ function confirmReservation(roomNumber) {
     const gender = document.getElementById('patientGender').value;
     const condition = document.getElementById('patientCondition').value;
     const admissionDate = document.getElementById('admissionDate').value;
-    const duration = parseInt(document.getElementById('duration').value);
+    const dischargeDate = document.getElementById('dischargeDate').value;
     const notes = document.getElementById('patientNotes').value;
     
-    if (confirm(`${roomNumber}호에 ${name} 환자를 예약하시겠습니까?`)) {
+    if (confirmPatientRegistration(name, gender, condition, roomNumber, admissionDate, dischargeDate, notes, false)) {
+        // 기존 등록 코드
         const startDate = new Date(admissionDate);
-        const endDate = new Date(startDate);
-        endDate.setDate(startDate.getDate() + duration);
+        let endDate = null;
+        
+        if (!isLongtermEnabled && dischargeDate) {
+            endDate = new Date(dischargeDate);
+        }
         
         const newPatient = {
             id: patients.length + 1,
@@ -410,7 +606,7 @@ function confirmReservation(roomNumber) {
             room: roomNumber,
             bedNumber: 1,
             admissionDate: admissionDate,
-            dischargeDate: endDate.toISOString().split('T')[0],
+            dischargeDate: endDate ? endDate.toISOString().split('T')[0] : null,
             notes: notes,
             status: new Date(admissionDate) > new Date() ? 'reserved' : 'admitted'
         };
@@ -423,8 +619,7 @@ function confirmReservation(roomNumber) {
         document.getElementById('recommendations').style.display = 'none';
         
         generateScheduleTable();
-        
-        alert(`${name} 환자가 ${roomNumber}호에 예약되었습니다.`);
+        alert(`${name} 환자가 ${roomNumber}호에 등록되었습니다.`);
     }
 }
 
@@ -433,17 +628,20 @@ function addPatient() {
     const gender = document.getElementById('patientGender').value;
     const condition = document.getElementById('patientCondition').value;
     const admissionDate = document.getElementById('admissionDate').value;
-    const duration = parseInt(document.getElementById('duration').value);
+    const dischargeDate = document.getElementById('dischargeDate').value;
     const notes = document.getElementById('patientNotes').value;
     
-    if (!name || !admissionDate || !duration) {
+    if (!name || !admissionDate || (!dischargeDate && !isLongtermEnabled)) {
         alert('필수 정보를 모두 입력해주세요.');
         return;
     }
     
     const startDate = new Date(admissionDate);
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + duration);
+    let endDate = null;
+    
+    if (!isLongtermEnabled && dischargeDate) {
+        endDate = new Date(dischargeDate);
+    }
     
     const recommendations = getRecommendations(gender, startDate, endDate);
     
@@ -454,33 +652,57 @@ function addPatient() {
     
     const selectedRoom = recommendations[0].room;
     
-    const newPatient = {
-        id: patients.length + 1,
-        name: name,
-        gender: gender,
-        condition: condition,
-        room: selectedRoom,
-        bedNumber: 1,
-        admissionDate: admissionDate,
-        dischargeDate: endDate.toISOString().split('T')[0],
-        notes: notes,
-        status: new Date(admissionDate) > new Date() ? 'reserved' : 'admitted'
-    };
+    if (confirmPatientRegistration(name, gender, condition, selectedRoom, admissionDate, dischargeDate, notes, true)) {
+        // 기존 등록 코드
+        const newPatient = {
+            id: patients.length + 1,
+            name: name,
+            gender: gender,
+            condition: condition,
+            room: selectedRoom,
+            bedNumber: 1,
+            admissionDate: admissionDate,
+            dischargeDate: endDate ? endDate.toISOString().split('T')[0] : null,
+            notes: notes,
+            status: new Date(admissionDate) > new Date() ? 'reserved' : 'admitted'
+        };
+        
+        patients.push(newPatient);
+        
+        document.getElementById('patientName').value = '';
+        document.getElementById('patientNotes').value = '';
+        document.getElementById('recommendations').style.display = 'none';
+        
+        generateScheduleTable();
+        alert(`${name} 환자가 ${selectedRoom}호에 등록되었습니다.`);
+    }
+}
+
+function confirmPatientRegistration(name, gender, condition, roomNumber, admissionDate, dischargeDate, notes, isAutoAssigned = false) {
+    const genderText = gender === 'male' ? '남성' : '여성';
+    const durationText = isLongtermEnabled ? '장기입원 (퇴원일 미정)' : `${admissionDate} ~ ${dischargeDate}`;
+    const roomText = isAutoAssigned ? `${roomNumber}호 (자동배정)` : `${roomNumber}호`;
     
-    patients.push(newPatient);
+    const confirmMessage = `환자 정보 확인\n\n환자명: ${name}\n성별: ${genderText}\n진료과: ${condition}\n병실: ${roomText}\n입원기간: ${durationText}\n특이사항: ${notes || '없음'}\n\n등록하시겠습니까?`;
     
-    document.getElementById('patientName').value = '';
-    document.getElementById('patientNotes').value = '';
-    document.getElementById('recommendations').style.display = 'none';
-    
-    generateScheduleTable();
-    
-    alert(`${name} 환자가 ${selectedRoom}호에 등록되었습니다.`);
+    return confirm(confirmMessage);
 }
 
 function closeModal() {
     document.getElementById('patientModal').style.display = 'none';
 }
+
+function closePatientDetailModal() {
+    document.getElementById('patientDetailModal').style.display = 'none';
+}
+
+// 모달 외부 클릭시 닫기
+document.getElementById('patientDetailModal').onclick = function(event) {
+    if (event.target === this) {
+        closePatientDetailModal();
+    }
+}
+
 
 document.getElementById('patientModal').onclick = function(event) {
     if (event.target === this) {
