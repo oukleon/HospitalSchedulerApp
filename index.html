@@ -46,7 +46,6 @@
                         <div class="duration-row">
                             <input type="date" id="dischargeDate" onchange="updateDurationFromDischarge()">
                             <select id="duration" onchange="updateDischargeFromDuration()">
-                                <option value="">기간</option>
                                 <option value="1">1일</option>
                                 <option value="2">2일</option>
                                 <option value="3">3일</option>
@@ -68,9 +67,46 @@
                                 <option value="19">19일</option>
                                 <option value="20">20일</option>
                                 <option value="21">21일</option>
+                                <option value="22">22일</option>
+                                <option value="23">23일</option>
+                                <option value="24">24일</option>
+                                <option value="25">25일</option>
+                                <option value="26">26일</option>
+                                <option value="27">27일</option>
+                                <option value="28">28일</option>
+                                <option value="29">29일</option>
                                 <option value="30">30일</option>
+                                <option value="31">31일</option>
+                                <option value="32">32일</option>
+                                <option value="33">33일</option>
+                                <option value="34">34일</option>
+                                <option value="35">35일</option>
+                                <option value="36">36일</option>
+                                <option value="37">37일</option>
+                                <option value="38">38일</option>
+                                <option value="39">39일</option>
+                                <option value="40">40일</option>
+                                <option value="41">41일</option>
+                                <option value="42">42일</option>
+                                <option value="43">43일</option>
+                                <option value="44">44일</option>
                                 <option value="45">45일</option>
+                                <option value="46">46일</option>
+                                <option value="47">47일</option>
+                                <option value="48">48일</option>
+                                <option value="49">49일</option>
+                                <option value="50">50일</option>
+                                <option value="51">51일</option>
+                                <option value="52">52일</option>
+                                <option value="53">53일</option>
+                                <option value="54">54일</option>
+                                <option value="55">55일</option>
+                                <option value="56">56일</option>
+                                <option value="57">57일</option>
+                                <option value="58">58일</option>
+                                <option value="59">59일</option>
                                 <option value="60">60일</option>
+                                <option value="60+">60+일</option>
                             </select>
                         </div>
                         <div class="longterm-container">
@@ -125,34 +161,26 @@
             <h3>색상 설명</h3>
             <div class="legend">
                 <div class="legend-section">
-                    <h4>점유율</h4>
+                    <h4>베드 상태</h4>
                     <div class="legend-item">
-                        <div class="legend-color occupancy-0-male"></div>
-                        <span>빈 병실</span>
+                        <div class="legend-color bed-empty"></div>
+                        <span>빈 베드</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color occupancy-50-male"></div>
-                        <span>부분 점유 (빗금)</span>
+                        <div class="legend-color bed-admitted-male"></div>
+                        <span>입원중 (남성)</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color occupancy-100-male"></div>
-                        <span>만실 (남성)</span>
+                        <div class="legend-color bed-admitted-female"></div>
+                        <span>입원중 (여성)</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color occupancy-100-female"></div>
-                        <span>만실 (여성)</span>
+                        <div class="legend-color bed-reserved-male"></div>
+                        <span>예약 (남성)</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color status-reserved-demo-male"></div>
-                        <span>예약 환자 (남성)</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color status-reserved-demo-female"></div>
-                        <span>예약 환자 (여성)</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color mixed-status-demo"></div>
-                        <span>혼합 상태 (입원+예약)</span>
+                        <div class="legend-color bed-reserved-female"></div>
+                        <span>예약 (여성)</span>
                     </div>
                 </div>
             </div>
