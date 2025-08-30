@@ -115,6 +115,13 @@
                         </div>
                     </div>
                     <div class="form-group">
+                        <label>입원 유형</label>
+                        <select id="admissionType">
+                            <option value="admitted">입원 확정</option>
+                            <option value="reserved">예약</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>병실타입</label>
                         <select id="roomType">
                             <option value="any">상관없음</option>
@@ -207,7 +214,13 @@
             <div id="dateSummaryBody"></div>
         </div>
     </div>
-
+    
+    <div class="bed-schedule-modal" id="bedScheduleModal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeBedScheduleModal()">&times;</span>
+            <div id="bedScheduleBody"></div>
+        </div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
