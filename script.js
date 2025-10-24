@@ -70,48 +70,7 @@ const beds = [
    {bed: '1308A', room: '1308', floor: 13, department: 'cancer'}
 ];
 
-let patients = [
-    {id: 1, name: '김철수', gender: 'male', condition: '암', bed: '1003A', admissionDate: '2025-08-15', dischargeDate: '2025-09-10', notes: '알레르기: 페니실린', status: 'admitted'},
-    {id: 2, name: '박영희', gender: 'female', condition: '재활', bed: '1005B', admissionDate: '2025-08-20', dischargeDate: '2025-09-15', notes: '휠체어 이용', status: 'admitted'},
-    {id: 3, name: '이민수', gender: 'male', condition: '재활', bed: '1003C', admissionDate: '2025-09-02', dischargeDate: '2025-09-20', notes: '', status: 'reserved'},
-    {id: 4, name: '정미경', gender: 'female', condition: '암', bed: '1203A', admissionDate: '2025-08-25', dischargeDate: '2025-09-08', notes: '', status: 'admitted'},
-    {id: 5, name: '최준호', gender: 'male', condition: '재활', bed: '1001A', admissionDate: '2025-09-01', dischargeDate: '2025-09-22', notes: '', status: 'reserved'},
-    {id: 6, name: '한소영', gender: 'female', condition: '암', bed: '1104A', admissionDate: '2025-08-28', dischargeDate: '2025-09-12', notes: '', status: 'admitted'},
-    {id: 7, name: '장민호', gender: 'male', condition: '재활', bed: '1002A', admissionDate: '2025-08-22', dischargeDate: '2025-09-05', notes: '', status: 'admitted'},
-    {id: 8, name: '오수진', gender: 'female', condition: '재활', bed: '1005A', admissionDate: '2025-09-03', dischargeDate: '2025-09-18', notes: '', status: 'reserved'},
-    {id: 9, name: '윤대성', gender: 'male', condition: '암', bed: '1105A', admissionDate: '2025-08-26', dischargeDate: '2025-09-14', notes: '', status: 'admitted'},
-    {id: 10, name: '강미나', gender: 'female', condition: '암', bed: '1105B', admissionDate: '2025-08-24', dischargeDate: '2025-09-07', notes: '', status: 'admitted'},
-    {id: 11, name: '서동민', gender: 'male', condition: '재활', bed: '1001B', admissionDate: '2025-08-18', dischargeDate: '2025-09-02', notes: '', status: 'admitted'},
-    {id: 12, name: '조은해', gender: 'female', condition: '암', bed: '1106A', admissionDate: '2025-09-04', dischargeDate: '2025-09-25', notes: '', status: 'reserved'},
-    {id: 13, name: '임재훈', gender: 'male', condition: '재활', bed: '1003B', admissionDate: '2025-08-21', dischargeDate: '2025-09-12', notes: '', status: 'admitted'},
-    {id: 14, name: '배서연', gender: 'female', condition: '암', bed: '1204A', admissionDate: '2025-08-29', dischargeDate: '2025-09-16', notes: '', status: 'admitted'},
-    {id: 15, name: '송민기', gender: 'male', condition: '재활', bed: '1004A', admissionDate: '2025-09-05', dischargeDate: '2025-09-28', notes: '', status: 'reserved'},
-    {id: 16, name: '전하늘', gender: 'female', condition: '암', bed: '1106B', admissionDate: '2025-08-27', dischargeDate: '2025-09-11', notes: '', status: 'admitted'},
-    {id: 17, name: '노태완', gender: 'male', condition: '재활', bed: '1002B', admissionDate: '2025-08-23', dischargeDate: '2025-09-09', notes: '', status: 'admitted'},
-    {id: 18, name: '유지현', gender: 'female', condition: '재활', bed: '1005C', admissionDate: '2025-09-06', dischargeDate: '2025-09-23', notes: '', status: 'reserved'},
-    {id: 19, name: '홍석진', gender: 'male', condition: '암', bed: '1107A', admissionDate: '2025-08-19', dischargeDate: '2025-09-05', notes: '', status: 'admitted'},
-    {id: 20, name: '문소희', gender: 'female', condition: '암', bed: '1107B', admissionDate: '2025-08-30', dischargeDate: '2025-09-17', notes: '', status: 'admitted'},
-    {id: 21, name: '안준영', gender: 'male', condition: '재활', bed: '1004B', admissionDate: '2025-08-16', dischargeDate: '2025-09-03', notes: '', status: 'admitted'},
-    {id: 22, name: '김나율', gender: 'female', condition: '암', bed: '1205A', admissionDate: '2025-09-07', dischargeDate: '2025-09-30', notes: '', status: 'reserved'},
-    {id: 23, name: '신재호', gender: 'male', condition: '재활', bed: '1003D', admissionDate: '2025-08-31', dischargeDate: '2025-09-19', notes: '', status: 'admitted'},
-    {id: 24, name: '황은비', gender: 'female', condition: '암', bed: '1205B', admissionDate: '2025-08-17', dischargeDate: '2025-09-01', notes: '', status: 'admitted'},
-    {id: 25, name: '고민성', gender: 'male', condition: '재활', bed: '1004C', admissionDate: '2025-09-08', dischargeDate: '2025-10-02', notes: '', status: 'reserved'},
-    {id: 26, name: '류채원', gender: 'female', condition: '암', bed: '1206A', admissionDate: '2025-08-28', dischargeDate: '2025-09-15', notes: '', status: 'admitted'},
-    {id: 27, name: '이현우', gender: 'male', condition: '재활', bed: '1002C', admissionDate: '2025-08-14', dischargeDate: '2025-08-31', notes: '', status: 'admitted'},
-    {id: 28, name: '박지민', gender: 'female', condition: '재활', bed: '1005D', admissionDate: '2025-09-09', dischargeDate: '2025-09-26', notes: '', status: 'reserved'},
-    {id: 29, name: '정태영', gender: 'male', condition: '암', bed: '1303A', admissionDate: '2025-08-26', dischargeDate: '2025-09-13', notes: '', status: 'admitted'},
-    {id: 30, name: '최수빈', gender: 'female', condition: '암', bed: '1303B', admissionDate: '2025-09-01', dischargeDate: '2025-09-21', notes: '', status: 'reserved'},
-    {id: 31, name: '김도현', gender: 'male', condition: '재활', bed: '1004D', admissionDate: '2025-08-25', dischargeDate: '2025-09-11', notes: '', status: 'admitted'},
-    {id: 32, name: '한예린', gender: 'female', condition: '암', bed: '1206B', admissionDate: '2025-08-20', dischargeDate: '2025-09-04', notes: '', status: 'admitted'},
-    {id: 33, name: '조현민', gender: 'male', condition: '재활', bed: '1002D', admissionDate: '2025-09-10', dischargeDate: '2025-10-05', notes: '', status: 'reserved'},
-    {id: 34, name: '서은지', gender: 'female', condition: '암', bed: '1304A', admissionDate: '2025-08-23', dischargeDate: '2025-09-08', notes: '', status: 'admitted'},
-    {id: 35, name: '장우진', gender: 'male', condition: '암', bed: '1301A', admissionDate: '2025-09-02', dischargeDate: '2025-09-24', notes: '', status: 'reserved'},
-    {id: 36, name: '임수아', gender: 'female', condition: '암', bed: '1304B', admissionDate: '2025-08-18', dischargeDate: '2025-09-03', notes: '', status: 'admitted'},
-    {id: 37, name: '배준수', gender: 'male', condition: '재활', bed: '1001C', admissionDate: '2025-08-21', dischargeDate: '2025-09-07', notes: '', status: 'admitted'},
-    {id: 38, name: '전민서', gender: 'female', condition: '암', bed: '1207A', admissionDate: '2025-09-11', dischargeDate: '2025-10-06', notes: '', status: 'reserved'},
-    {id: 39, name: '윤성호', gender: 'male', condition: '재활', bed: '1001D', admissionDate: '2025-08-27', dischargeDate: '2025-09-14', notes: '', status: 'admitted'},
-    {id: 40, name: '오다영', gender: 'female', condition: '암', bed: '1207B', admissionDate: '2025-08-24', dischargeDate: '2025-09-09', notes: '', status: 'admitted'}
-];
+let patients = [];
 
 let today = new Date();
 let currentStartDate = new Date(today);
@@ -119,17 +78,21 @@ currentStartDate.setDate(today.getDate() - 2);
 
 let isLongtermEnabled = false;
 
+// ===== 페이지 초기화 =====
 document.addEventListener('DOMContentLoaded', function() {
-   const today = new Date();
-   document.getElementById('admissionDate').value = today.toISOString().split('T')[0];
-   
-   const dischargeDate = new Date(today);
-   dischargeDate.setDate(today.getDate() + 14);
-   document.getElementById('dischargeDate').value = dischargeDate.toISOString().split('T')[0];
-   
-   generateScheduleTable();
+    loadPatients(); // 저장된 데이터 로드
+    
+    const today = new Date();
+    document.getElementById('admissionDate').value = today.toISOString().split('T')[0];
+    
+    const dischargeDate = new Date(today);
+    dischargeDate.setDate(today.getDate() + 14);
+    document.getElementById('dischargeDate').value = dischargeDate.toISOString().split('T')[0];
+    
+    generateScheduleTable();
 });
 
+// ===== 스케줄 테이블 생성 =====
 function generateScheduleTable() {
    const table = document.getElementById('scheduleTable');
    const dateRangeElement = document.getElementById('dateRange');
@@ -279,6 +242,8 @@ function getBedClass(bedStatus) {
    
    return 'bed-empty';
 }
+
+// ===== 모달 관련 함수들 =====
 function showBedDetails(bedId, dateStr, event) {
    event.stopPropagation();
    
@@ -381,6 +346,7 @@ function addPatientToBed(bedId, dateStr = '') {
    // 모달 닫기
    document.getElementById('patientModal').style.display = 'none';
    document.getElementById('patientDetailModal').style.display = 'none';
+   document.getElementById('bedScheduleModal').style.display = 'none';
    
    // 베드 정보 저장
    window.selectedBed = bedId;
@@ -401,73 +367,6 @@ function addPatientToBed(bedId, dateStr = '') {
    }, 2000);
    
    alert(`${bedId}에 환자를 등록합니다. 환자 정보를 입력해주세요.`);
-}
-
-// addPatient와 confirmReservation 함수 수정 (selectedBed 우선 사용)
-function addPatient() {
-   const name = document.getElementById('patientName').value;
-   const gender = document.getElementById('patientGender').value;
-   const condition = document.getElementById('patientCondition').value;
-   const admissionDate = document.getElementById('admissionDate').value;
-   const dischargeDate = document.getElementById('dischargeDate').value;
-   const roomType = document.getElementById('roomType').value;
-   const notes = document.getElementById('patientNotes').value;
-   const status = document.getElementById('bookingType').value;
-   
-   if (status === 'reserved' && new Date(admissionDate) <= new Date()) {
-       alert('예약은 내일 이후 날짜만 가능합니다.');
-       return;
-   }
-   
-   if (!name || !admissionDate || (!dischargeDate && !isLongtermEnabled)) {
-       alert('필수 정보를 모두 입력해주세요.');
-       return;
-   }
-   
-   let selectedBed;
-   
-   // 미리 지정된 베드가 있으면 사용
-   if (window.selectedBed) {
-       selectedBed = window.selectedBed;
-       window.selectedBed = null; // 초기화
-   } else {
-       // 추천 시스템 사용
-       const startDate = new Date(admissionDate);
-       const endDate = isLongtermEnabled ? new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000) : new Date(dischargeDate);
-       
-       const recommendations = getRecommendations(gender, condition, roomType, startDate, endDate);
-       
-       if (recommendations.length === 0) {
-           alert('사용 가능한 병실이 없습니다.');
-           return;
-       }
-       
-       selectedBed = recommendations[0].bed;
-   }
-   
-   if (confirmPatientRegistration(name, gender, condition, selectedBed, admissionDate, dischargeDate, notes, true)) {
-       const newPatient = {
-           id: patients.length + 1,
-           name: name,
-           gender: gender,
-           condition: condition,
-           bed: selectedBed,
-           admissionDate: admissionDate,
-           dischargeDate: isLongtermEnabled ? null : dischargeDate,
-           notes: notes,
-           status: status
-       };
-       
-       patients.push(newPatient);
-       saveData();
-       
-       document.getElementById('patientName').value = '';
-       document.getElementById('patientNotes').value = '';
-       document.getElementById('recommendations').style.display = 'none';
-       
-       generateScheduleTable();
-       alert(`${name} 환자가 ${selectedBed}에 등록되었습니다.`);
-   }
 }
 
 function showPatientDetails(patientId) {
@@ -581,15 +480,6 @@ function getFloorSummaryByDate(dateStr) {
    return floorData;
 }
 
-function moveDate(days) {
-   currentStartDate.setDate(currentStartDate.getDate() + days);
-   generateScheduleTable();
-}
-
-function formatDate(date) {
-   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-}
-
 function showLegendModal() {
    document.getElementById('legendModal').style.display = 'flex';
 }
@@ -606,13 +496,22 @@ function closePatientDetailModal() {
    document.getElementById('patientDetailModal').style.display = 'none';
 }
 
-
 function closeBedScheduleModal() {
     document.getElementById('bedScheduleModal').style.display = 'none';
 }
 
 function closeDateSummaryModal() {
    document.getElementById('dateSummaryModal').style.display = 'none';
+}
+
+// ===== 날짜 및 유틸리티 함수 =====
+function moveDate(days) {
+   currentStartDate.setDate(currentStartDate.getDate() + days);
+   generateScheduleTable();
+}
+
+function formatDate(date) {
+   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 function toggleLongterm() {
@@ -660,6 +559,73 @@ function updateDurationFromDischarge() {
                 durationSelect.value = diffDays;
             }
         }
+   }
+}
+
+// ===== 환자 추가 및 추천 시스템 =====
+function addPatient() {
+   const name = document.getElementById('patientName').value;
+   const gender = document.getElementById('patientGender').value;
+   const condition = document.getElementById('patientCondition').value;
+   const admissionDate = document.getElementById('admissionDate').value;
+   const dischargeDate = document.getElementById('dischargeDate').value;
+   const roomType = document.getElementById('roomType').value;
+   const notes = document.getElementById('patientNotes').value;
+   const status = document.getElementById('bookingType').value;
+   
+   if (status === 'reserved' && new Date(admissionDate) <= new Date()) {
+       alert('예약은 내일 이후 날짜만 가능합니다.');
+       return;
+   }
+   
+   if (!name || !admissionDate || (!dischargeDate && !isLongtermEnabled)) {
+       alert('필수 정보를 모두 입력해주세요.');
+       return;
+   }
+   
+   let selectedBed;
+   
+   // 미리 지정된 베드가 있으면 사용
+   if (window.selectedBed) {
+       selectedBed = window.selectedBed;
+       window.selectedBed = null; // 초기화
+   } else {
+       // 추천 시스템 사용
+       const startDate = new Date(admissionDate);
+       const endDate = isLongtermEnabled ? new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000) : new Date(dischargeDate);
+       
+       const recommendations = getRecommendations(gender, condition, roomType, startDate, endDate);
+       
+       if (recommendations.length === 0) {
+           alert('사용 가능한 병실이 없습니다.');
+           return;
+       }
+       
+       selectedBed = recommendations[0].bed;
+   }
+   
+   if (confirmPatientRegistration(name, gender, condition, selectedBed, admissionDate, dischargeDate, notes, true)) {
+       const newPatient = {
+           id: patients.length + 1,
+           name: name,
+           gender: gender,
+           condition: condition,
+           bed: selectedBed,
+           admissionDate: admissionDate,
+           dischargeDate: isLongtermEnabled ? null : dischargeDate,
+           notes: notes,
+           status: status
+       };
+       
+       patients.push(newPatient);
+       savePatients();
+       
+       document.getElementById('patientName').value = '';
+       document.getElementById('patientNotes').value = '';
+       document.getElementById('recommendations').style.display = 'none';
+       
+       generateScheduleTable();
+       alert(`${name} 환자가 ${selectedBed}에 등록되었습니다.`);
    }
 }
 
@@ -851,6 +817,7 @@ function confirmReservation(bedId) {
         };
         
         patients.push(newPatient);
+        savePatients();
         
         // 폼 초기화
         document.getElementById('patientName').value = '';
@@ -872,144 +839,74 @@ function confirmPatientRegistration(name, gender, condition, bedId, admissionDat
    return confirm(confirmMessage);
 }
 
-// 페이지 로드시 저장된 데이터 불러오기
-function loadData() {
-    const savedPatients = localStorage.getItem('hospitalPatients');
-    if (savedPatients) {
-        patients = JSON.parse(savedPatients);
+// ===== 데이터 저장/로드 =====
+function savePatients() {
+    try {
+        localStorage.setItem('hospitalPatients', JSON.stringify(patients));
+        console.log('✅ 환자 데이터 저장 완료:', patients.length, '명');
+    } catch (e) {
+        console.error('❌ 환자 데이터 저장 실패:', e);
+        alert('데이터 저장에 실패했습니다. 브라우저 저장소를 확인해주세요.');
     }
 }
 
-// 데이터 저장
-function saveData() {
-    localStorage.setItem('hospitalPatients', JSON.stringify(patients));
-}
-
-// 기존 DOMContentLoaded 이벤트에 loadData 추가
-document.addEventListener('DOMContentLoaded', function() {
-    loadData(); // 저장된 데이터 로드
-    
-    const today = new Date();
-    document.getElementById('admissionDate').value = today.toISOString().split('T')[0];
-    
-    const dischargeDate = new Date(today);
-    dischargeDate.setDate(today.getDate() + 14);
-    document.getElementById('dischargeDate').value = dischargeDate.toISOString().split('T')[0];
-    
-    generateScheduleTable();
-});
-
-// addPatient 함수 수정 (환자 추가 후 저장)
-function addPatient() {
-    const name = document.getElementById('patientName').value;
-    const gender = document.getElementById('patientGender').value;
-    const condition = document.getElementById('patientCondition').value;
-    const admissionDate = document.getElementById('admissionDate').value;
-    const dischargeDate = document.getElementById('dischargeDate').value;
-    const roomType = document.getElementById('roomType').value;
-    const notes = document.getElementById('patientNotes').value;
-    const status = document.getElementById('admissionType').value;
-    
-    // 예약은 오늘 이후만 가능
-    if (status === 'reserved' && new Date(admissionDate) <= new Date()) {
-        alert('예약은 내일 이후 날짜만 가능합니다.');
-        return;
-    }
-    
-    if (!name || !admissionDate || (!dischargeDate && !isLongtermEnabled)) {
-        alert('필수 정보를 모두 입력해주세요.');
-        return;
-    }
-    
-    const startDate = new Date(admissionDate);
-    const endDate = isLongtermEnabled ? new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000) : new Date(dischargeDate);
-    
-    const recommendations = getRecommendations(gender, condition, roomType, startDate, endDate);
-    
-    if (recommendations.length === 0) {
-        alert('사용 가능한 병실이 없습니다.');
-        return;
-    }
-    
-    const selectedBed = recommendations[0].bed;
-    
-    if (confirmPatientRegistration(name, gender, condition, selectedBed, admissionDate, dischargeDate, notes, true)) {
-        const newPatient = {
-            id: patients.length + 1,
-            name: name,
-            gender: gender,
-            condition: condition,
-            bed: selectedBed,
-            admissionDate: admissionDate,
-            dischargeDate: isLongtermEnabled ? null : dischargeDate,
-            notes: notes,
-            status: status
-        };
-        
-        patients.push(newPatient);
-        saveData();
-        
-        document.getElementById('patientName').value = '';
-        document.getElementById('patientNotes').value = '';
-        document.getElementById('recommendations').style.display = 'none';
-        
-        generateScheduleTable();
-        alert(`${name} 환자가 ${selectedBed}에 등록되었습니다.`);
+function loadPatients() {
+    try {
+        const saved = localStorage.getItem('hospitalPatients');
+        if (saved) {
+            patients = JSON.parse(saved);
+            console.log('✅ 환자 데이터 불러오기 완료:', patients.length, '명');
+        } else {
+            patients = [];
+            console.log('📦 새로운 병원 시스템 시작');
+        }
+    } catch (e) {
+        console.error('❌ 환자 데이터 불러오기 실패:', e);
+        patients = [];
     }
 }
 
-// confirmReservation 함수 수정 (환자 추가 후 저장)
-function confirmReservation(bedId) {
-    const name = document.getElementById('patientName').value;
-    const gender = document.getElementById('patientGender').value;
-    const condition = document.getElementById('patientCondition').value;
-    const admissionDate = document.getElementById('admissionDate').value;
-    const dischargeDate = document.getElementById('dischargeDate').value;
-    const notes = document.getElementById('patientNotes').value;
+function deletePatient(patientId) {
+    // 1. 삭제할 환자 찾기
+    const patient = patients.find(p => p.id === patientId);
     
-    if (!name) {
-        alert('환자명을 입력해주세요.');
-        return;
+    // 2. 환자가 없으면 에러 처리
+    if (!patient) {
+        alert('환자를 찾을 수 없습니다.');
+        return; // 함수 종료
     }
     
-    if (confirmPatientRegistration(name, gender, condition, bedId, admissionDate, dischargeDate, notes, false)) {
-        const newPatient = {
-            id: patients.length + 1,
-            name: name,
-            gender: gender,
-            condition: condition,
-            bed: bedId,
-            admissionDate: admissionDate,
-            dischargeDate: isLongtermEnabled ? null : dischargeDate,
-            notes: notes,
-            status: new Date(admissionDate) > new Date() ? 'reserved' : 'admitted'
-        };
-        
-        patients.push(newPatient);
-        saveData(); // 데이터 저장
-        
-        // 폼 초기화
-        document.getElementById('patientName').value = '';
-        document.getElementById('patientNotes').value = '';
-        document.getElementById('recommendations').style.display = 'none';
-        
-        generateScheduleTable();
-        alert(`${name} 환자가 ${bedId}에 등록되었습니다.`);
+    // 3. 사용자에게 확인 받기 (환자 이름 보여주기)
+    if (confirm(`⚠️ ${patient.name} 환자를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
+        // 4. 확인하면 삭제
+        patients = patients.filter(p => p.id !== patientId);
+        savePatients(); // localStorage에 저장
+        generateScheduleTable(); // 화면 업데이트
+        alert('✅ 환자가 삭제되었습니다.');
+        console.log('🗑️ 환자 삭제 완료:', patient.name); // 디버깅 로그
     }
+    // 5. 취소하면 아무것도 안 함
 }
 
-// 데이터 초기화 함수 (필요시 사용)
-function clearAllData() {
-    if (confirm('모든 환자 데이터를 삭제하시겠습니까?')) {
+function resetPatients() {
+    if (confirm('⚠️ 모든 환자 데이터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
         localStorage.removeItem('hospitalPatients');
-        patients = []; // 기본 샘플 데이터로 복원하려면 원래 배열로 설정
+        patients = [];
         generateScheduleTable();
-        alert('모든 데이터가 삭제되었습니다.');
+        alert('✅ 환자 데이터가 초기화되었습니다.');
+        console.log('🗑️ 환자 데이터 초기화 완료');
     }
 }
 
+// 오늘로 가기
+function goToToday() {
+    const today = new Date();
+    currentStartDate = new Date(today);
+    currentStartDate.setDate(today.getDate() - 2); // 오늘이 3번째 열
+    generateScheduleTable();
+}
 
-// 모달 외부 클릭시 닫기
+// ===== 모달 외부 클릭시 닫기 =====
 document.getElementById('patientDetailModal').onclick = function(event) {
    if (event.target === this) {
        closePatientDetailModal();
