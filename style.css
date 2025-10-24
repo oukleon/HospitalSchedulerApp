@@ -200,16 +200,18 @@ body {
 .schedule-header {
     background: #f8f9fa;
     padding: 20px;
+    position: relative;
     border-radius: 8px;
     margin-bottom: 20px;
     border: 1px solid #ddd;
-    min-width: 600px;
+    min-width: 800px;
 }
 
 .date-nav {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
     gap: 15px;
 }
 
@@ -304,9 +306,9 @@ body {
     flex: 1;
     border: 1px solid #ddd;
     border-radius: 8px;
-    overflow: hidden;
+    overflow-x: auto;
     background: white;
-    min-width: 600px;
+    min-width: 800px;
 }
 
 .schedule-table-wrapper {
