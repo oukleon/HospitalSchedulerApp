@@ -384,12 +384,16 @@ body {
     border-left-color: #ffc107;
 }
 
+.patient-item.discharged {
+    border-left-color: #6c757d;
+    opacity: 0.6;
+}
+
 .schedule-cell {
     height: 20px;
     padding: 1px;
     position: relative;
     background: white;
-    cursor: pointer;
     transition: background-color 0.2s;
 }
 
