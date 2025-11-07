@@ -150,7 +150,11 @@ function generateScheduleTable() {
                    const dateStr = `${year}-${month}-${day}`;
                    const bedStatus = getBedStatus(bed.bed, dateStr);
                    
-                   html += `<td class="schedule-cell" data-bed="${bed.bed}" data-date="${dateStr}" onclick="showBedDetails('${bed.bed}', '${dateStr}', event)">`;
+                   // 빈 베드면 클릭 이벤트 없음, 환자 있으면 클릭 가능
+                   const clickEvent = bedStatus.status === 'empty' ? '' : `onclick="showBedDetails('${bed.bed}', '${dateStr}', event)"`;
+                   const cursorStyle = bedStatus.status === 'empty' ? 'cursor: default;' : 'cursor: pointer;';
+                   
+                   html += `<td class="schedule-cell" data-bed="${bed.bed}" data-date="${dateStr}" ${clickEvent} style="${cursorStyle}">`;
                    
                    const showText = shouldShowText(previousBedStatus, bedStatus, dateIndex);
                    html += generateOccupancyBar(bedStatus, showText);
@@ -248,48 +252,14 @@ function showBedDetails(bedId, dateStr, event) {
    event.stopPropagation();
    
    const bedStatus = getBedStatus(bedId, dateStr);
-   const bed = beds.find(b => b.bed === bedId);
    
-   const [year, month, day] = dateStr.split('-');
-   const dateObj = new Date(year, month - 1, day);
-   const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
-   const dayName = dayNames[dateObj.getDay()];
-   const formattedDate = `${year}년 ${month}월 ${day}일 ${dayName}`;
-
-   const modal = document.getElementById('patientModal');
-   const modalBody = document.getElementById('modalBody');
-   
-   let html = `
-       <h3>${bedId} - ${formattedDate}</h3>
-       <p><strong>병실:</strong> ${bed.room}호 (${bed.floor}층 ${bed.department === 'rehabilitation' ? '재활' : '암'})</p>
-       <hr style="margin: 15px 0;">
-   `;
-   
+   // 빈 베드면 아무것도 안 함
    if (bedStatus.status === 'empty') {
-       html += `
-           <p>이 베드는 비어있습니다.</p>
-           <button class="btn btn-secondary" onclick="addPatientToBed('${bedId}', '${dateStr}')" style="margin-top: 10px;">
-               이 베드에 환자 추가
-           </button>
-       `;
-   } else {
-       const patient = bedStatus.patient;
-       const genderText = patient.gender === 'male' ? '남성' : '여성';
-       const statusText = patient.status === 'admitted' ? '입원중' : '예약';
-       
-       html += `
-           <h4>환자 정보:</h4>
-           <div style="background: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 4px; cursor: pointer;" onclick="showPatientDetails(${patient.id})">
-               <strong>${patient.name}</strong> (${genderText})<br>
-               <small>진료과: ${patient.condition} | 상태: ${statusText}</small><br>
-               <small>입원: ${patient.admissionDate} ~ ${patient.dischargeDate}</small>
-               ${patient.notes ? `<br><small>특이사항: ${patient.notes}</small>` : ''}
-           </div>
-       `;
+       return;
    }
    
-   modalBody.innerHTML = html;
-   modal.style.display = 'flex';
+   // 환자가 있으면 바로 환자 상세 모달 표시
+   showPatientDetails(bedStatus.patient.id);
 }
 
 function showBedSchedule(bedId) {
@@ -318,8 +288,26 @@ function showBedSchedule(bedId) {
        html += '<h4>예약/입원 현황:</h4>';
        bedPatients.forEach(patient => {
            const genderText = patient.gender === 'male' ? '남성' : '여성';
-           const statusText = patient.status === 'admitted' ? '입원중' : '예약';
-           const statusClass = patient.status === 'admitted' ? 'admitted' : 'reserved';
+           const today = new Date();
+           today.setHours(0, 0, 0, 0);
+           const dischargeDate = patient.dischargeDate ? new Date(patient.dischargeDate) : null;
+           const admissionDate = new Date(patient.admissionDate);
+           
+           let statusText, statusClass;
+           
+           if (dischargeDate && dischargeDate < today) {
+               // 이미 퇴원한 경우
+               statusText = '퇴원완료';
+               statusClass = 'discharged';
+           } else if (admissionDate > today) {
+               // 미래 예약
+               statusText = '예약';
+               statusClass = 'reserved';
+           } else {
+               // 현재 입원중
+               statusText = '입원중';
+               statusClass = 'admitted';
+           }
            
            html += `
                <div class="patient-item ${statusClass}" onclick="showPatientDetails(${patient.id})" style="cursor: pointer; margin: 8px 0;">
@@ -392,6 +380,16 @@ function showPatientDetails(patientId) {
            <div class="detail-row"><strong>입원일:</strong> ${patient.admissionDate}</div>
            <div class="detail-row"><strong>퇴원일:</strong> ${patient.dischargeDate || '미정 (장기입원)'}</div>
            ${patient.notes ? `<div class="detail-row"><strong>특이사항:</strong> ${patient.notes}</div>` : ''}
+       </div>
+       <div style="text-align: center; padding: 15px 0 5px 0;">
+           <a style="color: #999; font-size: 12px; text-decoration: underline; cursor: pointer;" 
+              onmouseover="this.style.color='#dc3545'" 
+              onmouseout="this.style.color='#999'"
+              onclick="deletePatientFromModal(${patient.id})">이 환자 정보 삭제</a>
+       </div>
+       <div style="border-top: 1px solid #eee; padding: 15px 0 0 0; display: flex; justify-content: space-between;">
+           <button class="btn" style="background: #28a745;" onclick="editPatient(${patient.id})">수정</button>
+           <button class="btn btn-secondary" onclick="closePatientDetailModal()">닫기</button>
        </div>
    `;
    
@@ -583,12 +581,14 @@ function addPatient() {
        return;
    }
    
+   // 수정 모드 확인
+   const isEditMode = window.editingPatientId !== undefined;
+   
    let selectedBed;
    
    // 미리 지정된 베드가 있으면 사용
    if (window.selectedBed) {
        selectedBed = window.selectedBed;
-       window.selectedBed = null; // 초기화
    } else {
        // 추천 시스템 사용
        const startDate = new Date(admissionDate);
@@ -604,20 +604,44 @@ function addPatient() {
        selectedBed = recommendations[0].bed;
    }
    
-   if (confirmPatientRegistration(name, gender, condition, selectedBed, admissionDate, dischargeDate, notes, true)) {
-       const newPatient = {
-           id: patients.length + 1,
-           name: name,
-           gender: gender,
-           condition: condition,
-           bed: selectedBed,
-           admissionDate: admissionDate,
-           dischargeDate: isLongtermEnabled ? null : dischargeDate,
-           notes: notes,
-           status: status
-       };
+   const actionText = isEditMode ? '수정' : '등록';
+   
+   if (confirmPatientRegistration(name, gender, condition, selectedBed, admissionDate, dischargeDate, notes, !isEditMode)) {
+       if (isEditMode) {
+           // 수정 모드: 기존 환자 업데이트
+           const patientIndex = patients.findIndex(p => p.id === window.editingPatientId);
+           if (patientIndex !== -1) {
+               patients[patientIndex] = {
+                   id: window.editingPatientId,
+                   name: name,
+                   gender: gender,
+                   condition: condition,
+                   bed: selectedBed,
+                   admissionDate: admissionDate,
+                   dischargeDate: isLongtermEnabled ? null : dischargeDate,
+                   notes: notes,
+                   status: status
+               };
+           }
+           window.editingPatientId = undefined;
+           window.selectedBed = null;
+       } else {
+           // 등록 모드: 새 환자 추가
+           const newPatient = {
+               id: patients.length + 1,
+               name: name,
+               gender: gender,
+               condition: condition,
+               bed: selectedBed,
+               admissionDate: admissionDate,
+               dischargeDate: isLongtermEnabled ? null : dischargeDate,
+               notes: notes,
+               status: status
+           };
+           patients.push(newPatient);
+           window.selectedBed = null;
+       }
        
-       patients.push(newPatient);
        savePatients();
        
        document.getElementById('patientName').value = '';
@@ -625,7 +649,7 @@ function addPatient() {
        document.getElementById('recommendations').style.display = 'none';
        
        generateScheduleTable();
-       alert(`${name} 환자가 ${selectedBed}에 등록되었습니다.`);
+       alert(`${name} 환자가 ${selectedBed}에 ${actionText}되었습니다.`);
    }
 }
 
@@ -886,6 +910,55 @@ function deletePatient(patientId) {
         console.log('🗑️ 환자 삭제 완료:', patient.name); // 디버깅 로그
     }
     // 5. 취소하면 아무것도 안 함
+}
+
+function deletePatientFromModal(patientId) {
+    deletePatient(patientId);
+    closePatientDetailModal(); // 삭제 후 모달 닫기
+}
+
+function editPatient(patientId) {
+    const patient = patients.find(p => p.id === patientId);
+    if (!patient) {
+        alert('환자를 찾을 수 없습니다.');
+        return;
+    }
+    
+    // 모달 닫기
+    closePatientDetailModal();
+    
+    // 사이드바 폼에 환자 정보 입력
+    document.getElementById('patientName').value = patient.name;
+    document.getElementById('patientGender').value = patient.gender;
+    document.getElementById('patientCondition').value = patient.condition;
+    document.getElementById('admissionDate').value = patient.admissionDate;
+    
+    if (patient.dischargeDate) {
+        document.getElementById('dischargeDate').value = patient.dischargeDate;
+        document.getElementById('longtermCheck').checked = false;
+        isLongtermEnabled = false;
+    } else {
+        document.getElementById('longtermCheck').checked = true;
+        isLongtermEnabled = true;
+    }
+    
+    document.getElementById('patientNotes').value = patient.notes || '';
+    document.getElementById('admissionType').value = patient.status;
+    
+    // 베드 정보 저장 (수정 모드임을 표시)
+    window.editingPatientId = patientId;
+    window.selectedBed = patient.bed;
+    
+    // 폼 하이라이트
+    const sidebar = document.querySelector('.sidebar');
+    sidebar.scrollTop = 0;
+    sidebar.style.background = '#d1ecf1'; // 파란색 배경 (수정 모드)
+    
+    setTimeout(() => {
+        sidebar.style.background = '#f8f9fa';
+    }, 3000);
+    
+    alert(`${patient.name} 환자 정보를 수정합니다.\n정보를 변경한 후 "환자 등록" 버튼을 눌러주세요.`);
 }
 
 function resetPatients() {
