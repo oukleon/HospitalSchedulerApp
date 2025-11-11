@@ -134,6 +134,7 @@
                         <label>특이사항</label>
                         <textarea id="patientNotes" placeholder="알레르기, 특별 요구사항 등"></textarea>
                     </div>
+                    <button class="btn" style="background: #17a2b8;" onclick="findAvailableBeds()">가능한 병실 찾기</button>
                     <button class="btn" onclick="findRecommendations()">병실 추천받기</button>
                     <button class="btn btn-secondary" onclick="addPatient()">환자 등록</button>
                 </div>
@@ -222,6 +223,14 @@
             <div id="bedScheduleBody"></div>
         </div>
     </div>
+    
+    <div class="bed-selection-modal" id="bedSelectionModal" style="display: none;">
+        <div class="modal-content" style="max-width: 700px; max-height: 80vh; overflow-y: auto;">
+            <span class="close" onclick="closeBedSelectionModal()">&times;</span>
+            <div id="bedSelectionBody"></div>
+        </div>
+    </div>
+    
     <script src="script.js"></script>
 </body>
 </html>
