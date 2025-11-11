@@ -601,7 +601,7 @@ function addPatient() {
    const dischargeDate = document.getElementById('dischargeDate').value;
    const roomType = document.getElementById('roomType').value;
    const notes = document.getElementById('patientNotes').value;
-   const status = document.getElementById('bookingType').value;
+   const status = document.getElementById('admissionType').value;
    
    if (status === 'reserved' && new Date(admissionDate) <= new Date()) {
        alert('예약은 내일 이후 날짜만 가능합니다.');
@@ -612,9 +612,6 @@ function addPatient() {
        alert('필수 정보를 모두 입력해주세요.');
        return;
    }
-   
-   // 수정 모드 확인
-   const isEditMode = window.editingPatientId !== undefined;
    
    let selectedBed;
    
@@ -636,43 +633,22 @@ function addPatient() {
        selectedBed = recommendations[0].bed;
    }
    
-   const actionText = isEditMode ? '수정' : '등록';
-   
-   if (confirmPatientRegistration(name, gender, condition, selectedBed, admissionDate, dischargeDate, notes, !isEditMode)) {
-       if (isEditMode) {
-           // 수정 모드: 기존 환자 업데이트
-           const patientIndex = patients.findIndex(p => p.id === window.editingPatientId);
-           if (patientIndex !== -1) {
-               patients[patientIndex] = {
-                   id: window.editingPatientId,
-                   name: name,
-                   gender: gender,
-                   condition: condition,
-                   bed: selectedBed,
-                   admissionDate: admissionDate,
-                   dischargeDate: isLongtermEnabled ? null : dischargeDate,
-                   notes: notes,
-                   status: status
-               };
-           }
-           window.editingPatientId = undefined;
-           window.selectedBed = null;
-       } else {
-           // 등록 모드: 새 환자 추가
-           const newPatient = {
-               id: patients.length + 1,
-               name: name,
-               gender: gender,
-               condition: condition,
-               bed: selectedBed,
-               admissionDate: admissionDate,
-               dischargeDate: isLongtermEnabled ? null : dischargeDate,
-               notes: notes,
-               status: status
-           };
-           patients.push(newPatient);
-           window.selectedBed = null;
-       }
+   if (confirmPatientRegistration(name, gender, condition, selectedBed, admissionDate, dischargeDate, notes)) {
+       // 새 환자 추가
+       const newPatient = {
+           id: patients.length > 0 ? Math.max(...patients.map(p => p.id)) + 1 : 1,
+           name: name,
+           gender: gender,
+           condition: condition,
+           bed: selectedBed,
+           admissionDate: admissionDate,
+           dischargeDate: isLongtermEnabled ? null : dischargeDate,
+           notes: notes,
+           status: status,
+           roomType: roomType  // ← 추가
+       };
+       patients.push(newPatient);
+       window.selectedBed = null;
        
        savePatients();
        
@@ -681,7 +657,7 @@ function addPatient() {
        document.getElementById('recommendations').style.display = 'none';
        
        generateScheduleTable();
-       alert(`${name} 환자가 ${selectedBed}에 ${actionText}되었습니다.`);
+       alert(`${name} 환자가 ${selectedBed}에 등록되었습니다.`);
    }
 }
 
@@ -852,6 +828,7 @@ function confirmReservation(bedId) {
     const condition = document.getElementById('patientCondition').value;
     const admissionDate = document.getElementById('admissionDate').value;
     const dischargeDate = document.getElementById('dischargeDate').value;
+    const roomType = document.getElementById('roomType').value;  // ← 추가
     const notes = document.getElementById('patientNotes').value;
     
     if (!name) {
@@ -869,7 +846,8 @@ function confirmReservation(bedId) {
             admissionDate: admissionDate,
             dischargeDate: isLongtermEnabled ? null : dischargeDate,
             notes: notes,
-            status: new Date(admissionDate) > new Date() ? 'reserved' : 'admitted'
+            status: new Date(admissionDate) > new Date() ? 'reserved' : 'admitted',
+            roomType: roomType  // ← 추가
         };
         
         patients.push(newPatient);
@@ -949,6 +927,9 @@ function deletePatientFromModal(patientId) {
     closePatientDetailModal(); // 삭제 후 모달 닫기
 }
 
+let editingPatientId = null;
+let isEditLongtermEnabled = false;
+
 function editPatient(patientId) {
     const patient = patients.find(p => p.id === patientId);
     if (!patient) {
@@ -959,40 +940,316 @@ function editPatient(patientId) {
     // 모달 닫기
     closePatientDetailModal();
     
-    // 사이드바 폼에 환자 정보 입력
-    document.getElementById('patientName').value = patient.name;
-    document.getElementById('patientGender').value = patient.gender;
-    document.getElementById('patientCondition').value = patient.condition;
-    document.getElementById('admissionDate').value = patient.admissionDate;
+    // 전역 변수에 편집 중인 환자 ID 저장
+    editingPatientId = patientId;
+    
+    // 모달 폼에 환자 정보 입력
+    document.getElementById('editPatientName').value = patient.name;
+    document.getElementById('editPatientGender').value = patient.gender;
+    document.getElementById('editPatientCondition').value = patient.condition;
+    document.getElementById('editAdmissionDate').value = patient.admissionDate;
+    document.getElementById('editPatientBed').value = patient.bed;
+    document.getElementById('editPatientNotes').value = patient.notes || '';
+    document.getElementById('editAdmissionType').value = patient.status;
+    document.getElementById('editRoomType').value = patient.roomType || 'any';  // ← 추가
     
     if (patient.dischargeDate) {
-        document.getElementById('dischargeDate').value = patient.dischargeDate;
-        document.getElementById('longtermCheck').checked = false;
-        isLongtermEnabled = false;
+        document.getElementById('editDischargeDate').value = patient.dischargeDate;
+        document.getElementById('editLongtermCheck').checked = false;
+        isEditLongtermEnabled = false;
+        document.getElementById('editDischargeDate').disabled = false;
+        document.getElementById('editDuration').disabled = false;
+        updateEditDurationFromDischarge();
     } else {
-        document.getElementById('longtermCheck').checked = true;
-        isLongtermEnabled = true;
+        document.getElementById('editDischargeDate').value = '';
+        document.getElementById('editLongtermCheck').checked = true;
+        isEditLongtermEnabled = true;
+        document.getElementById('editDischargeDate').disabled = true;
+        document.getElementById('editDuration').disabled = true;
     }
     
-    document.getElementById('patientNotes').value = patient.notes || '';
-    document.getElementById('admissionType').value = patient.status;
-    
-    // 베드 정보 저장 (수정 모드임을 표시)
-    window.editingPatientId = patientId;
-    window.selectedBed = patient.bed;
-    
-    // 폼 하이라이트
-    const sidebar = document.querySelector('.sidebar');
-    sidebar.scrollTop = 0;
-    sidebar.style.background = '#d1ecf1'; // 파란색 배경 (수정 모드)
-    
-    setTimeout(() => {
-        sidebar.style.background = '#f8f9fa';
-    }, 3000);
-    
-    alert(`${patient.name} 환자 정보를 수정합니다.\n정보를 변경한 후 "환자 등록" 버튼을 눌러주세요.`);
+    // 모달 표시
+    document.getElementById('patientEditModal').style.display = 'flex';
 }
 
+function savePatientEdit() {
+    if (editingPatientId === null) return;
+    
+    const name = document.getElementById('editPatientName').value;
+    const gender = document.getElementById('editPatientGender').value;
+    const condition = document.getElementById('editPatientCondition').value;
+    const admissionDate = document.getElementById('editAdmissionDate').value;
+    const dischargeDate = document.getElementById('editDischargeDate').value;
+    const notes = document.getElementById('editPatientNotes').value;
+    const status = document.getElementById('editAdmissionType').value;
+    const bed = document.getElementById('editPatientBed').value;
+    const roomType = document.getElementById('editRoomType').value;  // ← 추가
+    
+    if (!name || !admissionDate || (!dischargeDate && !isEditLongtermEnabled)) {
+        alert('필수 정보를 모두 입력해주세요.');
+        return;
+    }
+    
+    // 환자 정보 업데이트
+    const patientIndex = patients.findIndex(p => p.id === editingPatientId);
+    if (patientIndex !== -1) {
+        patients[patientIndex].name = name;
+        patients[patientIndex].gender = gender;
+        patients[patientIndex].condition = condition;
+        patients[patientIndex].bed = bed;
+        patients[patientIndex].admissionDate = admissionDate;
+        patients[patientIndex].dischargeDate = isEditLongtermEnabled ? null : dischargeDate;
+        patients[patientIndex].notes = notes;
+        patients[patientIndex].status = status;
+        patients[patientIndex].roomType = roomType;  // ← 추가
+        
+        savePatients();
+        generateScheduleTable();
+        
+        alert(`${name} 환자 정보가 수정되었습니다.`);
+        closePatientEditModal();
+    }
+}
+
+function closePatientEditModal() {
+    document.getElementById('patientEditModal').style.display = 'none';
+    editingPatientId = null;
+}
+
+function toggleEditLongterm() {
+    isEditLongtermEnabled = document.getElementById('editLongtermCheck').checked;
+    const dischargeInput = document.getElementById('editDischargeDate');
+    const durationSelect = document.getElementById('editDuration');
+    
+    dischargeInput.disabled = isEditLongtermEnabled;
+    durationSelect.disabled = isEditLongtermEnabled;
+}
+
+function updateEditDischargeFromDuration() {
+    const admissionDate = document.getElementById('editAdmissionDate').value;
+    const duration = document.getElementById('editDuration').value;
+    
+    if (admissionDate && duration && !isEditLongtermEnabled) {
+        const startDate = new Date(admissionDate);
+        const endDate = new Date(startDate);
+        
+        if (duration === '60+') {
+            endDate.setDate(startDate.getDate() + 61);
+        } else {
+            endDate.setDate(startDate.getDate() + parseInt(duration));
+        }
+        
+        document.getElementById('editDischargeDate').value = endDate.toISOString().split('T')[0];
+    }
+}
+
+function updateEditDurationFromDischarge() {
+    const admissionDate = document.getElementById('editAdmissionDate').value;
+    const dischargeDate = document.getElementById('editDischargeDate').value;
+    const durationSelect = document.getElementById('editDuration');
+
+    if (admissionDate && dischargeDate && !isEditLongtermEnabled) {
+        const start = new Date(admissionDate);
+        const end = new Date(dischargeDate);
+        const diffTime = end - start;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays > 0) {
+            if (diffDays > 60) {
+                durationSelect.value = "60+";
+            } else {
+                durationSelect.value = diffDays;
+            }
+        }
+    }
+}
+
+// 모달 외부 클릭시 닫기
+document.getElementById('patientEditModal').onclick = function(event) {
+    if (event.target === this) {
+        closePatientEditModal();
+    }
+}
+
+function changeBedForEdit() {
+    const admissionDate = document.getElementById('editAdmissionDate').value;
+    const dischargeDate = document.getElementById('editDischargeDate').value;
+    const gender = document.getElementById('editPatientGender').value;
+    const condition = document.getElementById('editPatientCondition').value;
+    const roomType = document.getElementById('editRoomType').value;  // ← 추가
+    
+    if (!admissionDate || (!dischargeDate && !isEditLongtermEnabled)) {
+        alert('입원 날짜를 먼저 확인해주세요.');
+        return;
+    }
+    
+    const startDate = new Date(admissionDate);
+    const endDate = isEditLongtermEnabled ? new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000) : new Date(dischargeDate);
+    
+    // 현재 편집 중인 환자는 제외하고 베드 체크
+    const originalPatients = [...patients];
+    const tempPatients = patients.filter(p => p.id !== editingPatientId);
+    patients = tempPatients;
+    
+    // 가능한 베드 찾기
+    const bedList = beds.map(bed => {
+        const available = isBedAvailable(bed.bed, startDate, endDate);
+        const genderOk = isGenderCompatible(bed.room, gender, startDate, endDate);
+        const conditionMatch = isConditionMatch(bed.department, condition);
+        const roomTypeMatch = roomType === 'any' || getBedRoomType(bed.room) === roomType;  // ← 추가
+        
+        let status, reason, score = 0;
+        
+        if (!available) {
+            status = 'unavailable';
+            reason = '기간 중 사용 중';
+        } else if (!genderOk) {
+            status = 'incompatible';
+            reason = '성별 불일치';
+        } else if (conditionMatch && roomTypeMatch) {  // ← 수정
+            status = 'recommended';
+            reason = '추천';
+            score = 100;
+        } else {
+            status = 'available';
+            reason = '사용 가능';
+            score = 50;
+        }
+        
+        return {
+            bed: bed.bed,
+            room: bed.room,
+            floor: bed.floor,
+            department: bed.department,
+            score: score,
+            status: status,
+            reason: reason
+        };
+    });
+    
+    // 원래 환자 데이터 복원
+    patients = originalPatients;
+    
+    bedList.sort((a, b) => {
+        const order = { recommended: 0, available: 1, incompatible: 2, unavailable: 3 };
+        if (order[a.status] !== order[b.status]) {
+            return order[a.status] - order[b.status];
+        }
+        return b.score - a.score;
+    });
+    
+    displayBedSelectionForEdit(bedList);
+}
+
+function confirmSplitAdmissionForEdit(combo) {
+    alert('수정 모드에서는 분할 입원 변경이 복잡하여 지원하지 않습니다.\n\n기존 환자를 삭제하고 새로 등록해주세요.');
+    // 나중에 구현할 수 있음
+}
+
+function displayBedSelectionForEdit(bedList) {
+    const modal = document.getElementById('bedSelectionModal');
+    const modalBody = document.getElementById('bedSelectionBody');
+    
+    const recommended = bedList.filter(b => b.status === 'recommended').length;
+    const available = bedList.filter(b => b.status === 'available').length;
+    const incompatible = bedList.filter(b => b.status === 'incompatible').length;
+    const unavailable = bedList.filter(b => b.status === 'unavailable').length;
+    
+    let html = `
+        <h3>베드 변경</h3>
+        <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; margin: 10px 0;">
+            <small>
+                <span style="color: #28a745;">✓ 추천 ${recommended}개</span> | 
+                <span style="color: #17a2b8;">○ 가능 ${available}개</span> | 
+                <span style="color: #fd7e14;">△ 성별불일치 ${incompatible}개</span> | 
+                <span style="color: #6c757d;">× 사용중 ${unavailable}개</span>
+            </small>
+        </div>
+        <div style="max-height: 400px; overflow-y: auto;">
+    `;
+    
+    bedList.forEach(bed => {
+        const roomTypeText = getBedRoomType(bed.room);
+        const deptText = bed.department === 'rehabilitation' ? '재활' : '암';
+        const disabledStyle = bed.status === 'unavailable' ? 'opacity: 0.5; cursor: not-allowed;' : 'cursor: pointer;';
+        
+        let icon, color, borderColor, clickEvent;
+        if (bed.status === 'recommended') {
+            icon = '✓';
+            color = '#28a745';
+            borderColor = '#28a745';
+            clickEvent = `onclick="selectBedForEdit('${bed.bed}')"`;
+        } else if (bed.status === 'available') {
+            icon = '○';
+            color = '#17a2b8';
+            borderColor = '#17a2b8';
+            clickEvent = `onclick="selectBedForEdit('${bed.bed}')"`;
+        } else if (bed.status === 'incompatible') {
+            icon = '△';
+            color = '#fd7e14';
+            borderColor = '#fd7e14';
+            clickEvent = `onclick="selectBedForEditWithWarning('${bed.bed}', 'gender')"`;
+        } else {
+            icon = '×';
+            color = '#6c757d';
+            borderColor = '#6c757d';
+            clickEvent = '';
+        }
+        
+        html += `
+            <div style="border: 2px solid ${borderColor}; border-radius: 6px; padding: 12px; margin: 8px 0; ${disabledStyle}" ${clickEvent}>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="font-size: 20px; color: ${color}; margin-right: 8px;">${icon}</span>
+                        <strong style="font-size: 16px;">${bed.bed}</strong>
+                        <span style="margin-left: 8px; color: #666; font-size: 13px;">
+                            ${roomTypeText}, ${bed.floor}층 ${deptText}
+                        </span>
+                    </div>
+                    <div style="font-size: 12px; color: ${color};">
+                        ${bed.reason}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    
+    // 추천이 없을 때만 분할 입원 버튼 표시
+    if (recommended === 0) {
+        html += `
+            <div style="border-top: 2px solid #ddd; margin-top: 15px; padding-top: 15px;">
+                <button id="splitAdmissionBtn" class="btn" style="background: #6f42c1; width: 100%;" onclick="toggleSplitAdmissions('edit')">
+                    🔍 분할 입원 가능 여부 확인하기
+                </button>
+                <div id="splitAdmissionsResult"></div>
+            </div>
+        `;
+    }
+    
+    modalBody.innerHTML = html;
+    modal.style.display = 'flex';
+}
+
+function selectBedForEdit(bedId) {
+    document.getElementById('editPatientBed').value = bedId;
+    closeBedSelectionModal();
+    alert(`베드가 ${bedId}로 변경되었습니다. 저장 버튼을 눌러 확정해주세요.`);
+}
+
+function selectBedForEditWithWarning(bedId, warningType) {
+    let warningMessage = '';
+    if (warningType === 'gender') {
+        warningMessage = `⚠️ 경고: 이 병실은 성별이 맞지 않습니다.\n같은 방에 다른 성별 환자가 있거나 배정될 수 있습니다.\n\n그래도 베드를 ${bedId}로 변경하시겠습니까?`;
+    }
+    
+    if (confirm(warningMessage)) {
+        document.getElementById('editPatientBed').value = bedId;
+        closeBedSelectionModal();
+        alert(`베드가 ${bedId}로 변경되었습니다. 저장 버튼을 눌러 확정해주세요.`);
+    }
+}
 function resetPatients() {
     if (confirm('⚠️ 모든 환자 데이터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
         localStorage.removeItem('hospitalPatients');
@@ -1059,25 +1316,34 @@ function findAvailableBeds() {
     
     // 모든 베드 평가
     const bedList = beds.map(bed => {
-        const score = calculateBedScore(bed, gender, condition, roomType, startDate, endDate);
         const available = isBedAvailable(bed.bed, startDate, endDate);
         const genderOk = isGenderCompatible(bed.room, gender, startDate, endDate);
         const conditionMatch = isConditionMatch(bed.department, condition);
         const roomTypeMatch = roomType === 'any' || getBedRoomType(bed.room) === roomType;
         
-        let status, reason;
+        let status, reason, score = 0;
+        
+        // 1. 사용 중 → X (최우선)
         if (!available) {
             status = 'unavailable';
             reason = '기간 중 사용 중';
-        } else if (!genderOk) {
+        }
+        // 2. 성별 불일치 → X
+        else if (!genderOk) {
             status = 'incompatible';
             reason = '성별 불일치';
-        } else if (score > 0) {
+        }
+        // 3. 모든 조건 만족 → 추천
+        else if (conditionMatch && roomTypeMatch) {
             status = 'recommended';
-            reason = conditionMatch && roomTypeMatch ? '추천' : '사용 가능';
-        } else {
+            reason = '추천';
+            score = 100;
+        }
+        // 4. 일부 조건만 만족 → 가능
+        else {
             status = 'available';
-            reason = '조건 일부 불일치';
+            reason = '사용 가능';
+            score = 50;
         }
         
         return {
@@ -1091,7 +1357,7 @@ function findAvailableBeds() {
         };
     });
     
-    // 정렬: 추천 > 사용가능 > 불가
+    // 정렬: 추천 > 사용가능 > 불일치 > 사용중
     bedList.sort((a, b) => {
         const order = { recommended: 0, available: 1, incompatible: 2, unavailable: 3 };
         if (order[a.status] !== order[b.status]) {
@@ -1117,7 +1383,7 @@ function displayBedSelection(bedList) {
         <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; margin: 10px 0;">
             <small>
                 <span style="color: #28a745;">✓ 추천 ${recommended}개</span> | 
-                <span style="color: #ffc107;">○ 가능 ${available}개</span> | 
+                <span style="color: #17a2b8;">○ 가능 ${available}개</span> | 
                 <span style="color: #fd7e14;">△ 성별불일치 ${incompatible}개</span> | 
                 <span style="color: #6c757d;">× 사용중 ${unavailable}개</span>
             </small>
@@ -1128,29 +1394,30 @@ function displayBedSelection(bedList) {
     bedList.forEach(bed => {
         const roomTypeText = getBedRoomType(bed.room);
         const deptText = bed.department === 'rehabilitation' ? '재활' : '암';
-        const disabled = bed.status === 'unavailable' ? 'disabled' : '';
         const disabledStyle = bed.status === 'unavailable' ? 'opacity: 0.5; cursor: not-allowed;' : 'cursor: pointer;';
         
-        let icon, color, borderColor;
+        let icon, color, borderColor, clickEvent;
         if (bed.status === 'recommended') {
             icon = '✓';
             color = '#28a745';
             borderColor = '#28a745';
+            clickEvent = `onclick="selectBed('${bed.bed}')"`;
         } else if (bed.status === 'available') {
             icon = '○';
-            color = '#ffc107';
-            borderColor = '#ffc107';
+            color = '#17a2b8';
+            borderColor = '#17a2b8';
+            clickEvent = `onclick="selectBed('${bed.bed}')"`;
         } else if (bed.status === 'incompatible') {
             icon = '△';
             color = '#fd7e14';
             borderColor = '#fd7e14';
+            clickEvent = `onclick="selectBedWithWarning('${bed.bed}', 'gender')"`;
         } else {
             icon = '×';
             color = '#6c757d';
             borderColor = '#6c757d';
+            clickEvent = '';
         }
-        
-        const clickEvent = bed.status === 'unavailable' ? '' : `onclick="selectBed('${bed.bed}')"`;
         
         html += `
             <div style="border: 2px solid ${borderColor}; border-radius: 6px; padding: 12px; margin: 8px 0; ${disabledStyle}" ${clickEvent}>
@@ -1172,8 +1439,497 @@ function displayBedSelection(bedList) {
     
     html += '</div>';
     
+    // 추천이 없을 때만 분할 입원 버튼 표시
+    if (recommended === 0) {
+        html += `
+            <div style="border-top: 2px solid #ddd; margin-top: 15px; padding-top: 15px;">
+                <button id="splitAdmissionBtn" class="btn" style="background: #6f42c1; width: 100%;" onclick="toggleSplitAdmissions('new')">
+                    🔍 분할 입원 가능 여부 확인하기
+                </button>
+                <div id="splitAdmissionsResult"></div>
+            </div>
+        `;
+    }
+    
     modalBody.innerHTML = html;
     modal.style.display = 'flex';
+}
+
+function toggleSplitAdmissions(mode) {
+    const resultDiv = document.getElementById('splitAdmissionsResult');
+    const btn = document.getElementById('splitAdmissionBtn');
+    
+    // 이미 열려있으면 닫기
+    if (resultDiv.innerHTML !== '') {
+        resultDiv.innerHTML = '';
+        btn.textContent = '🔍 분할 입원 가능 여부 확인하기';
+        btn.style.background = '#6f42c1';
+        return;
+    }
+    
+    // 닫혀있으면 열기
+    findSplitAdmissions(mode);
+}
+
+function findSplitAdmissions(mode) {
+    let gender, condition, admissionDate, dischargeDate, roomType;
+    
+    if (mode === 'edit') {
+        gender = document.getElementById('editPatientGender').value;
+        condition = document.getElementById('editPatientCondition').value;
+        admissionDate = document.getElementById('editAdmissionDate').value;
+        dischargeDate = document.getElementById('editDischargeDate').value;
+        roomType = document.getElementById('editRoomType').value;
+        
+        if (isEditLongtermEnabled) {
+            alert('장기입원은 분할 입원을 지원하지 않습니다.');
+            return;
+        }
+    } else {
+        gender = document.getElementById('patientGender').value;
+        condition = document.getElementById('patientCondition').value;
+        admissionDate = document.getElementById('admissionDate').value;
+        dischargeDate = document.getElementById('dischargeDate').value;
+        roomType = document.getElementById('roomType').value;
+        
+        if (isLongtermEnabled) {
+            alert('장기입원은 분할 입원을 지원하지 않습니다.');
+            return;
+        }
+    }
+    
+    const startDate = new Date(admissionDate);
+    const endDate = new Date(dischargeDate);
+    const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+    
+    const btn = document.getElementById('splitAdmissionBtn');  // ← event.target 대신 getElementById 사용
+    btn.disabled = true;
+    btn.textContent = '검색 중...';
+    btn.style.background = '#999';
+    
+    // 현재 편집 중인 환자 제외 (edit 모드일 때)
+    let originalPatients = null;
+    if (mode === 'edit' && editingPatientId) {
+        originalPatients = [...patients];
+        patients = patients.filter(p => p.id !== editingPatientId);
+    }
+    
+    // 모든 가능한 2분할 조합 찾기
+    const combinations = [];
+    
+    for (let splitDay = 1; splitDay < totalDays; splitDay++) {
+        const midDate = new Date(startDate);
+        midDate.setDate(startDate.getDate() + splitDay);
+        
+        // 첫 번째 기간에 사용 가능한 베드
+        const firstPeriodBeds = beds.filter(bed => {
+            const available = isBedAvailable(bed.bed, startDate, midDate);
+            const genderOk = isGenderCompatible(bed.room, gender, startDate, midDate);
+            return available && genderOk;
+        });
+        
+        // 두 번째 기간에 사용 가능한 베드
+        const secondPeriodStart = new Date(midDate);
+        secondPeriodStart.setDate(midDate.getDate() + 1);
+        const secondPeriodBeds = beds.filter(bed => {
+            const available = isBedAvailable(bed.bed, secondPeriodStart, endDate);
+            const genderOk = isGenderCompatible(bed.room, gender, secondPeriodStart, endDate);
+            return available && genderOk;
+        });
+        
+        // 조합 생성
+        firstPeriodBeds.forEach(bed1 => {
+            secondPeriodBeds.forEach(bed2 => {
+                // 같은 베드로 연속되는 경우는 제외 (의미없음)
+                if (bed1.bed === bed2.bed) return;
+                
+                const score = calculateSplitScore(bed1, bed2, condition, roomType);
+                
+                combinations.push({
+                    bed1: bed1,
+                    bed2: bed2,
+                    splitDay: splitDay,
+                    period1Days: splitDay,
+                    period2Days: totalDays - splitDay,
+                    startDate: formatDate(startDate),
+                    midDate: formatDate(midDate),
+                    endDate: formatDate(endDate),
+                    score: score
+                });
+            });
+        });
+    }
+    
+    // 원래 환자 데이터 복원 (edit 모드일 때)
+    if (originalPatients) {
+        patients = originalPatients;
+    }
+    
+    // 점수순 정렬
+    combinations.sort((a, b) => b.score - a.score);
+    
+    // 상위 5개만 표시
+    const topCombinations = combinations.slice(0, 5);
+    
+    displaySplitAdmissions(topCombinations, gender, condition, roomType, mode);
+}
+
+function displaySplitAdmissions(combinations, gender, condition, roomType, mode) {
+    const resultDiv = document.getElementById('splitAdmissionsResult');
+    const btn = document.getElementById('splitAdmissionBtn');
+    
+    btn.disabled = false;
+    btn.textContent = '✕ 분할 입원 결과 닫기';
+    btn.style.background = '#dc3545';
+    
+    if (combinations.length === 0) {
+        resultDiv.innerHTML = `
+            <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 15px; text-align: center; margin-top: 15px;">
+                <strong>⚠️ 분할 입원 가능한 조합을 찾을 수 없습니다.</strong>
+                <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">날짜를 조정하거나 조건을 변경해보세요.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div style="background: #e7f3ff; border: 1px solid #2196F3; border-radius: 6px; padding: 12px; margin: 15px 0 10px 0;">
+            <strong style="color: #1976D2;">📋 분할 입원 가능 조합 ${combinations.length}개 발견</strong>
+        </div>
+        <div style="max-height: 300px; overflow-y: auto;">
+    `;
+    
+    combinations.forEach((combo, index) => {
+        const bed1Info = beds.find(b => b.bed === combo.bed1.bed);
+        const bed2Info = beds.find(b => b.bed === combo.bed2.bed);
+        
+        const bed1RoomType = getBedRoomType(bed1Info.room);
+        const bed2RoomType = getBedRoomType(bed2Info.room);
+        const bed1Dept = bed1Info.department === 'rehabilitation' ? '재활' : '암';
+        const bed2Dept = bed2Info.department === 'rehabilitation' ? '재활' : '암';
+        
+        const bed1ConditionMatch = isConditionMatch(bed1Info.department, condition);
+        const bed2ConditionMatch = isConditionMatch(bed2Info.department, condition);
+        const bed1RoomMatch = roomType === 'any' || getBedRoomType(bed1Info.room) === roomType;
+        const bed2RoomMatch = roomType === 'any' || getBedRoomType(bed2Info.room) === roomType;
+        
+        const isRecommended = bed1ConditionMatch && bed2ConditionMatch && bed1RoomMatch && bed2RoomMatch;
+        const badge = isRecommended ? '<span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 8px;">⭐ 추천</span>' : '';
+        
+        const clickHandler = mode === 'edit' ? 
+            `confirmSplitAdmissionForEdit(${JSON.stringify(combo).replace(/"/g, '&quot;')})` :
+            `confirmSplitAdmission(${JSON.stringify(combo).replace(/"/g, '&quot;')})`;
+        
+        html += `
+            <div style="border: 2px solid ${isRecommended ? '#28a745' : '#ddd'}; border-radius: 8px; padding: 15px; margin: 10px 0; background: white;">
+                <div style="font-weight: bold; margin-bottom: 10px; font-size: 15px;">
+                    조합 ${index + 1}${badge}
+                </div>
+                <div style="margin-left: 10px;">
+                    <div style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px;">
+                        <strong>1단계:</strong> ${combo.startDate} ~ ${combo.midDate} (${combo.period1Days}일)
+                        <br>→ <strong>${combo.bed1.bed}</strong> (${bed1RoomType}, ${bed1Info.floor}층 ${bed1Dept})
+                    </div>
+                    <div style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px;">
+                        <strong>2단계:</strong> ${combo.midDate}부터 ${combo.endDate}까지 (${combo.period2Days}일)
+                        <br>→ <strong>${combo.bed2.bed}</strong> (${bed2RoomType}, ${bed2Info.floor}층 ${bed2Dept})
+                    </div>
+                </div>
+                <button class="btn" style="background: #2196F3; margin-top: 10px; width: 100%;" 
+                        onclick='${clickHandler}'>
+                    이 조합으로 ${mode === 'edit' ? '변경' : '등록'}하기
+                </button>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    
+    resultDiv.innerHTML = html;
+}
+
+function findSplitAdmissions(mode) {
+    let gender, condition, admissionDate, dischargeDate, roomType;
+    
+    if (mode === 'edit') {
+        gender = document.getElementById('editPatientGender').value;
+        condition = document.getElementById('editPatientCondition').value;
+        admissionDate = document.getElementById('editAdmissionDate').value;
+        dischargeDate = document.getElementById('editDischargeDate').value;
+        roomType = document.getElementById('editRoomType').value;
+        
+        if (isEditLongtermEnabled) {
+            alert('장기입원은 분할 입원을 지원하지 않습니다.');
+            return;
+        }
+    } else {
+        gender = document.getElementById('patientGender').value;
+        condition = document.getElementById('patientCondition').value;
+        admissionDate = document.getElementById('admissionDate').value;
+        dischargeDate = document.getElementById('dischargeDate').value;
+        roomType = document.getElementById('roomType').value;
+        
+        if (isLongtermEnabled) {
+            alert('장기입원은 분할 입원을 지원하지 않습니다.');
+            return;
+        }
+    }
+    
+    const startDate = new Date(admissionDate);
+    const endDate = new Date(dischargeDate);
+    const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+    
+    const btn = document.getElementById('splitAdmissionBtn');  // ← event.target 대신 getElementById 사용
+    btn.disabled = true;
+    btn.textContent = '검색 중...';
+    btn.style.background = '#999';
+    
+    // 현재 편집 중인 환자 제외 (edit 모드일 때)
+    let originalPatients = null;
+    if (mode === 'edit' && editingPatientId) {
+        originalPatients = [...patients];
+        patients = patients.filter(p => p.id !== editingPatientId);
+    }
+    
+    // 모든 가능한 2분할 조합 찾기
+    const combinations = [];
+    
+    for (let splitDay = 1; splitDay < totalDays; splitDay++) {
+        const midDate = new Date(startDate);
+        midDate.setDate(startDate.getDate() + splitDay);
+        
+        // 첫 번째 기간에 사용 가능한 베드
+        const firstPeriodBeds = beds.filter(bed => {
+            const available = isBedAvailable(bed.bed, startDate, midDate);
+            const genderOk = isGenderCompatible(bed.room, gender, startDate, midDate);
+            return available && genderOk;
+        });
+        
+        // 두 번째 기간에 사용 가능한 베드
+        const secondPeriodStart = new Date(midDate);
+        secondPeriodStart.setDate(midDate.getDate() + 1);
+        const secondPeriodBeds = beds.filter(bed => {
+            const available = isBedAvailable(bed.bed, secondPeriodStart, endDate);
+            const genderOk = isGenderCompatible(bed.room, gender, secondPeriodStart, endDate);
+            return available && genderOk;
+        });
+        
+        // 조합 생성
+        firstPeriodBeds.forEach(bed1 => {
+            secondPeriodBeds.forEach(bed2 => {
+                // 같은 베드로 연속되는 경우는 제외 (의미없음)
+                if (bed1.bed === bed2.bed) return;
+                
+                const score = calculateSplitScore(bed1, bed2, condition, roomType);
+                
+                combinations.push({
+                    bed1: bed1,
+                    bed2: bed2,
+                    splitDay: splitDay,
+                    period1Days: splitDay,
+                    period2Days: totalDays - splitDay,
+                    startDate: formatDate(startDate),
+                    midDate: formatDate(midDate),
+                    endDate: formatDate(endDate),
+                    score: score
+                });
+            });
+        });
+    }
+    
+    // 원래 환자 데이터 복원 (edit 모드일 때)
+    if (originalPatients) {
+        patients = originalPatients;
+    }
+    
+    // 점수순 정렬
+    combinations.sort((a, b) => b.score - a.score);
+    
+    // 상위 5개만 표시
+    const topCombinations = combinations.slice(0, 5);
+    
+    displaySplitAdmissions(topCombinations, gender, condition, roomType, mode);
+}
+
+function calculateSplitScore(bed1, bed2, condition, roomType) {
+    let score = 0;
+    
+    // 진료과 일치도
+    const bed1ConditionMatch = isConditionMatch(bed1.department, condition);
+    const bed2ConditionMatch = isConditionMatch(bed2.department, condition);
+    if (bed1ConditionMatch && bed2ConditionMatch) score += 100;
+    else if (bed1ConditionMatch || bed2ConditionMatch) score += 50;
+    
+    // 병실타입 일치도
+    if (roomType !== 'any') {
+        const bed1RoomMatch = getBedRoomType(bed1.room) === roomType;
+        const bed2RoomMatch = getBedRoomType(bed2.room) === roomType;
+        if (bed1RoomMatch && bed2RoomMatch) score += 80;
+        else if (bed1RoomMatch || bed2RoomMatch) score += 40;
+    }
+    
+    // 같은 층이면 가산점
+    if (bed1.floor === bed2.floor) score += 30;
+    
+    // 같은 방이면 더 큰 가산점 (같은 병실 내 베드 이동)
+    if (bed1.room === bed2.room) score += 50;
+    
+    return score;
+}
+
+function displaySplitAdmissions(combinations, gender, condition, roomType) {
+    const resultDiv = document.getElementById('splitAdmissionsResult');
+    
+    if (combinations.length === 0) {
+        resultDiv.innerHTML = `
+            <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 15px; text-align: center;">
+                <strong>⚠️ 분할 입원 가능한 조합을 찾을 수 없습니다.</strong>
+                <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">날짜를 조정하거나 조건을 변경해보세요.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div style="background: #e7f3ff; border: 1px solid #2196F3; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+            <strong style="color: #1976D2;">📋 분할 입원 가능 조합 ${combinations.length}개 발견</strong>
+        </div>
+    `;
+    
+    combinations.forEach((combo, index) => {
+        const bed1Info = beds.find(b => b.bed === combo.bed1.bed);
+        const bed2Info = beds.find(b => b.bed === combo.bed2.bed);
+        
+        const bed1RoomType = getBedRoomType(bed1Info.room);
+        const bed2RoomType = getBedRoomType(bed2Info.room);
+        const bed1Dept = bed1Info.department === 'rehabilitation' ? '재활' : '암';
+        const bed2Dept = bed2Info.department === 'rehabilitation' ? '재활' : '암';
+        
+        const bed1ConditionMatch = isConditionMatch(bed1Info.department, condition);
+        const bed2ConditionMatch = isConditionMatch(bed2Info.department, condition);
+        const bed1RoomMatch = roomType === 'any' || getBedRoomType(bed1Info.room) === roomType;
+        const bed2RoomMatch = roomType === 'any' || getBedRoomType(bed2Info.room) === roomType;
+        
+        const isRecommended = bed1ConditionMatch && bed2ConditionMatch && bed1RoomMatch && bed2RoomMatch;
+        const badge = isRecommended ? '<span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 8px;">⭐ 추천</span>' : '';
+        
+        html += `
+            <div style="border: 2px solid ${isRecommended ? '#28a745' : '#ddd'}; border-radius: 8px; padding: 15px; margin: 10px 0; background: white;">
+                <div style="font-weight: bold; margin-bottom: 10px; font-size: 15px;">
+                    조합 ${index + 1}${badge}
+                </div>
+                <div style="margin-left: 10px;">
+                    <div style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px;">
+                        <strong>1단계:</strong> ${combo.startDate} ~ ${combo.midDate} (${combo.period1Days}일)
+                        <br>→ <strong>${combo.bed1.bed}</strong> (${bed1RoomType}, ${bed1Info.floor}층 ${bed1Dept})
+                    </div>
+                    <div style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px;">
+                        <strong>2단계:</strong> ${combo.midDate}부터 ${combo.endDate}까지 (${combo.period2Days}일)
+                        <br>→ <strong>${combo.bed2.bed}</strong> (${bed2RoomType}, ${bed2Info.floor}층 ${bed2Dept})
+                    </div>
+                </div>
+                <button class="btn" style="background: #2196F3; margin-top: 10px; width: 100%;" 
+                        onclick='confirmSplitAdmission(${JSON.stringify(combo)})'>
+                    이 조합으로 등록하기
+                </button>
+            </div>
+        `;
+    });
+    
+    resultDiv.innerHTML = html;
+}
+
+function confirmSplitAdmission(combo) {
+    const name = document.getElementById('patientName').value;
+    const gender = document.getElementById('patientGender').value;
+    const condition = document.getElementById('patientCondition').value;
+    const roomType = document.getElementById('roomType').value;
+    const notes = document.getElementById('patientNotes').value;
+    const status = document.getElementById('admissionType').value;
+    
+    if (!name) {
+        alert('환자명을 입력해주세요.');
+        return;
+    }
+    
+    const confirmMsg = `${name} 환자를 분할 입원으로 등록하시겠습니까?\n\n` +
+                       `1단계: ${combo.startDate} ~ ${combo.midDate} (${combo.period1Days}일)\n` +
+                       `   → ${combo.bed1.bed}\n\n` +
+                       `2단계: ${combo.midDate}부터 ${combo.endDate}까지 (${combo.period2Days}일)\n` +
+                       `   → ${combo.bed2.bed}`;
+    
+    if (!confirm(confirmMsg)) return;
+    
+    // 첫 번째 환자 등록
+    const patient1 = {
+        id: patients.length > 0 ? Math.max(...patients.map(p => p.id)) + 1 : 1,
+        name: name,
+        gender: gender,
+        condition: condition,
+        bed: combo.bed1.bed,
+        admissionDate: combo.startDate,
+        dischargeDate: combo.midDate,
+        notes: notes + ' [분할입원 1/2]',
+        status: status,
+        roomType: roomType,
+        transferTo: combo.bed2.bed  // 이동 정보
+    };
+    
+    // 두 번째 환자 등록
+    const midDatePlus1 = new Date(combo.midDate);
+    midDatePlus1.setDate(midDatePlus1.getDate() + 1);
+    
+    const patient2 = {
+        id: patient1.id + 1,
+        name: name,
+        gender: gender,
+        condition: condition,
+        bed: combo.bed2.bed,
+        admissionDate: formatDate(midDatePlus1),
+        dischargeDate: combo.endDate,
+        notes: notes + ' [분할입원 2/2]',
+        status: status,
+        roomType: roomType,
+        transferFrom: combo.bed1.bed  // 이동 정보
+    };
+    
+    patients.push(patient1);
+    patients.push(patient2);
+    
+    savePatients();
+    
+    // 폼 초기화
+    document.getElementById('patientName').value = '';
+    document.getElementById('patientNotes').value = '';
+    document.getElementById('recommendations').style.display = 'none';
+    
+    closeBedSelectionModal();
+    generateScheduleTable();
+    
+    alert(`${name} 환자가 분할 입원으로 등록되었습니다.\n1단계: ${combo.bed1.bed}\n2단계: ${combo.bed2.bed}`);
+}
+
+function selectBedWithWarning(bedId, warningType) {
+    const bed = beds.find(b => b.bed === bedId);
+    const roomType = getBedRoomType(bed.room);
+    const deptText = bed.department === 'rehabilitation' ? '재활' : '암';
+    const name = document.getElementById('patientName').value;
+    
+    if (!name) {
+        alert('환자명을 입력해주세요.');
+        return;
+    }
+    
+    let warningMessage = '';
+    if (warningType === 'gender') {
+        warningMessage = `⚠️ 경고: 이 병실은 성별이 맞지 않습니다.\n같은 방에 다른 성별 환자가 있거나 배정될 수 있습니다.\n\n그래도 ${name} 환자를 ${bedId} (${roomType}, ${bed.floor}층 ${deptText})에 등록하시겠습니까?`;
+    }
+    
+    if (confirm(warningMessage)) {
+        window.selectedBed = bedId;
+        closeBedSelectionModal();
+        addPatient();
+    }
 }
 
 function selectBed(bedId) {
