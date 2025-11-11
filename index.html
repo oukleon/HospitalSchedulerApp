@@ -136,7 +136,6 @@
                     </div>
                     <button class="btn" style="background: #17a2b8;" onclick="findAvailableBeds()">가능한 병실 찾기</button>
                     <button class="btn" onclick="findRecommendations()">병실 추천받기</button>
-                    <button class="btn btn-secondary" onclick="addPatient()">환자 등록</button>
                 </div>
                 
                 <div id="recommendations" style="display: none;"></div>
@@ -232,5 +231,141 @@
     </div>
     
     <script src="script.js"></script>
+    <div class="patient-edit-modal" id="patientEditModal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close" onclick="closePatientEditModal()">&times;</span>
+            <h3>환자 정보 수정</h3>
+            <div class="patient-form" style="border: none; padding: 0; margin: 0;">
+                <div class="form-group">
+                    <label>환자명</label>
+                    <input type="text" id="editPatientName" placeholder="환자명">
+                </div>
+                <div class="form-group">
+                    <label>성별</label>
+                    <select id="editPatientGender">
+                        <option value="male">남성</option>
+                        <option value="female">여성</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>진료과/상태</label>
+                    <select id="editPatientCondition">
+                        <option value="암">암</option>
+                        <option value="재활">재활</option>
+                        <option value="일반">일반</option>
+                        <option value="수술">수술</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>입원 시작일</label>
+                    <input type="date" id="editAdmissionDate">
+                </div>
+                <div class="form-group">
+                    <label>입원 종료일 / 기간</label>
+                    <div class="duration-row">
+                        <input type="date" id="editDischargeDate" onchange="updateEditDurationFromDischarge()">
+                        <select id="editDuration" onchange="updateEditDischargeFromDuration()">
+                            <option value="1">1일</option>
+                            <option value="2">2일</option>
+                            <option value="3">3일</option>
+                            <option value="4">4일</option>
+                            <option value="5">5일</option>
+                            <option value="6">6일</option>
+                            <option value="7">7일</option>
+                            <option value="8">8일</option>
+                            <option value="9">9일</option>
+                            <option value="10">10일</option>
+                            <option value="11">11일</option>
+                            <option value="12">12일</option>
+                            <option value="13">13일</option>
+                            <option value="14" selected>14일</option>
+                            <option value="15">15일</option>
+                            <option value="16">16일</option>
+                            <option value="17">17일</option>
+                            <option value="18">18일</option>
+                            <option value="19">19일</option>
+                            <option value="20">20일</option>
+                            <option value="21">21일</option>
+                            <option value="22">22일</option>
+                            <option value="23">23일</option>
+                            <option value="24">24일</option>
+                            <option value="25">25일</option>
+                            <option value="26">26일</option>
+                            <option value="27">27일</option>
+                            <option value="28">28일</option>
+                            <option value="29">29일</option>
+                            <option value="30">30일</option>
+                            <option value="31">31일</option>
+                            <option value="32">32일</option>
+                            <option value="33">33일</option>
+                            <option value="34">34일</option>
+                            <option value="35">35일</option>
+                            <option value="36">36일</option>
+                            <option value="37">37일</option>
+                            <option value="38">38일</option>
+                            <option value="39">39일</option>
+                            <option value="40">40일</option>
+                            <option value="41">41일</option>
+                            <option value="42">42일</option>
+                            <option value="43">43일</option>
+                            <option value="44">44일</option>
+                            <option value="45">45일</option>
+                            <option value="46">46일</option>
+                            <option value="47">47일</option>
+                            <option value="48">48일</option>
+                            <option value="49">49일</option>
+                            <option value="50">50일</option>
+                            <option value="51">51일</option>
+                            <option value="52">52일</option>
+                            <option value="53">53일</option>
+                            <option value="54">54일</option>
+                            <option value="55">55일</option>
+                            <option value="56">56일</option>
+                            <option value="57">57일</option>
+                            <option value="58">58일</option>
+                            <option value="59">59일</option>
+                            <option value="60">60일</option>
+                            <option value="60+">60+일</option>
+                        </select>
+                    </div>
+                    <div class="longterm-container">
+                        <label class="longterm-label" for="editLongtermCheck">장기입원 (퇴원일 미정)</label>
+                        <input type="checkbox" class="longterm-checkbox" id="editLongtermCheck" onchange="toggleEditLongterm()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>입원 유형</label>
+                    <select id="editAdmissionType">
+                        <option value="admitted">입원 확정</option>
+                        <option value="reserved">예약</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>병실타입</label>
+                    <select id="editRoomType">
+                        <option value="any">상관없음</option>
+                        <option value="1인실">1인실</option>
+                        <option value="2인실">2인실</option>
+                        <option value="4인실">4인실</option>
+                    </select>
+                </div>
+               <div class="form-group">
+                    <label>배정 베드</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="editPatientBed" disabled style="background: #f0f0f0; flex: 1;">
+                        <button class="btn" style="background: #17a2b8; padding: 8px 16px; margin: 0; width: auto;" onclick="changeBedForEdit()">베드 변경</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>특이사항</label>
+                    <textarea id="editPatientNotes" placeholder="알레르기, 특별 요구사항 등"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn" style="background: #28a745; flex: 1;" onclick="savePatientEdit()">저장</button>
+                    <button class="btn" style="background: #6c757d; flex: 1;" onclick="closePatientEditModal()">취소</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
