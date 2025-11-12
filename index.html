@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>병원 스케줄 관리 시스템</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -139,6 +140,27 @@
                 </div>
                 
                 <div id="recommendations" style="display: none;"></div>
+                <!-- 데이터 관리 - 미니멀 버전 -->
+                <div style="border-top: 1px solid #e0e0e0; padding-top: 12px; margin-top: 15px;">
+                    <details style="cursor: pointer;">
+                        <summary style="font-size: 12px; color: #999; user-select: none; list-style: none; display: flex; align-items: center; gap: 5px;">
+                            <span style="font-size: 10px;">▶</span>
+                            <span>데이터 관리</span>
+                        </summary>
+                        <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 5px;">
+                            <button class="btn" style="background: #6c757d; padding: 6px 12px; font-size: 12px;" onclick="showDownloadOptions()">
+                                📥 다운로드
+                            </button>
+                            <button class="btn" style="background: #6c757d; padding: 6px 12px; font-size: 12px;" onclick="document.getElementById('importFile').click()">
+                                📤 업로드
+                            </button>
+                            <input type="file" id="importFile" accept=".json,.xlsx" style="display: none;" onchange="importPatients(event)">
+                            <button class="btn" style="background: #dc3545; padding: 6px 12px; font-size: 12px;" onclick="resetPatients()">
+                                🗑️ 전체삭제
+                            </button>
+                        </div>
+                    </details>
+                </div>
             </div>
 
             <div class="schedule-area">
@@ -364,6 +386,25 @@
                     <button class="btn" style="background: #28a745; flex: 1;" onclick="savePatientEdit()">저장</button>
                     <button class="btn" style="background: #6c757d; flex: 1;" onclick="closePatientEditModal()">취소</button>
                 </div>
+            </div>
+        </div>
+    </div>
+    <div class="download-option-modal" id="downloadOptionModal" style="display: none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <span class="close" onclick="closeDownloadOptionModal()">&times;</span>
+            <h3>다운로드 형식 선택</h3>
+            <p style="font-size: 13px; color: #666; margin: 10px 0 20px 0;">
+                총 <strong>${patients.length}명</strong>의 환자 데이터를 다운로드합니다.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="btn" style="background: #17a2b8;" onclick="exportPatients('json')">
+                    📄 JSON 형식 (.json)
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.8); margin-top: 3px;">백업/복구용 (모든 데이터 보존)</div>
+                </button>
+                <button class="btn" style="background: #28a745;" onclick="exportPatients('excel')">
+                    📊 Excel 형식 (.xlsx)
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.8); margin-top: 3px;">엑셀에서 열람/편집 가능</div>
+                </button>
             </div>
         </div>
     </div>
