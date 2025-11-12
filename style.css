@@ -623,3 +623,28 @@ body {
     align-items: center;
     justify-content: center;
 }
+details > summary {
+    transition: color 0.2s;
+}
+
+details > summary:hover {
+    color: #666;
+}
+
+details[open] > summary span:first-child {
+    transform: rotate(90deg);
+    display: inline-block;
+}
+
+.download-option-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
