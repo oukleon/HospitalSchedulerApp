@@ -704,6 +704,27 @@ function getRecommendations(patientGender, patientCondition, roomType, startDate
     return candidates.slice(0, 5);
 }
 
+function showPatientModal() {
+    // 기존 patient-form을 모달로 띄우기
+    const modalHtml = `
+        <div class="patient-detail-modal" onclick="closePatientModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <span class="close" onclick="closePatientModal()">&times;</span>
+                ${document.querySelector('.patient-form').outerHTML}
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+function closePatientModal(event) {
+    if (event && event.target.classList.contains('patient-detail-modal')) {
+        event.target.remove();
+    } else if (!event) {
+        document.querySelector('.patient-detail-modal').remove();
+    }
+}
+
 function calculateBedScore(bed, patientGender, patientCondition, roomType, startDate, endDate) {
     let score = 0;
     
