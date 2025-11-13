@@ -171,7 +171,6 @@
                         <span class="date-range" id="dateRange"></span>
                         <button class="nav-btn" onclick="moveDate(1)" title="1일 이후">&gt;</button>
                         <button class="nav-btn" onclick="moveDate(10)" title="10일 이후">&gt;&gt;</button>
-                        <a onclick="goToToday()" style="cursor: pointer; color: #007bff; text-decoration: underline; position: absolute; right: 0;">오늘로 이동</a>
                     </div>
                 </div>
 
@@ -408,5 +407,7 @@
             </div>
         </div>
     </div>
+    <button class="floating-today-btn" onclick="goToToday()" title="오늘로 이동">오늘</button>
+    <button class="floating-add-patient-btn" onclick="showPatientModal()" title="환자 등록">+</button>
 </body>
 </html>
