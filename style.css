@@ -57,6 +57,7 @@ body {
 
 .sidebar {
     width: 320px;
+    transition: width 0.3s ease;  
     background: #f8f9fa;
     padding: 20px;
     border-right: 1px solid #ddd;
@@ -113,15 +114,18 @@ body {
     gap: 10px;
     align-items: center;
     margin-bottom: 10px;
+    flex-wrap: wrap;
 }
 
 .duration-row input {
     flex: 1;
+    min-width: 120px;
 }
 
 .duration-row select {
     width: 80px;
     flex: none;
+    min-width: 80px;
 }
 
 .duration-dropdown {
@@ -634,6 +638,11 @@ body {
     align-items: center;
     justify-content: center;
 }
+
+.patient-edit-modal h3 {
+    margin-bottom: 15px;
+}
+
 details > summary {
     transition: color 0.2s;
 }
@@ -711,6 +720,18 @@ details[open] > summary span:first-child {
     transform: scale(1.1);
     box-shadow: 0 6px 16px rgba(0,0,0,0.4);
     opacity: 1;
+}
+
+@media (max-width: 1200px) {
+    .sidebar {
+        width: 280px;
+    }
+}
+
+@media (max-width: 1050px) {
+    .sidebar {
+        width: 240px;
+    }
 }
 
 @media (max-width: 950px) {
