@@ -135,7 +135,7 @@
                         <label>특이사항</label>
                         <textarea id="patientNotes" placeholder="알레르기, 특별 요구사항 등"></textarea>
                     </div>
-                    <button class="btn" style="background: #17a2b8;" onclick="findAvailableBeds()">가능한 병실 찾기</button>
+                    <button class="btn" style="background: #17a2b8;" onclick="findAvailableBeds()">병실 찾기</button>
                     <button class="btn" onclick="findRecommendations()">병실 추천받기</button>
                 </div>
                 
@@ -408,6 +408,6 @@
         </div>
     </div>
     <button class="floating-today-btn" onclick="goToToday()" title="오늘로 이동">오늘</button>
-    <button class="floating-add-patient-btn" onclick="showPatientModal()" title="환자 등록">+</button>
+    <button class="floating-add-patient-btn" onclick="openNewPatientModal()" title="환자 등록">+</button>
 </body>
 </html>
