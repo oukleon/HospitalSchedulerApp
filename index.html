@@ -135,8 +135,15 @@
                         <label>특이사항</label>
                         <textarea id="patientNotes" placeholder="알레르기, 특별 요구사항 등"></textarea>
                     </div>
-                    <button class="btn" style="background: #17a2b8;" onclick="findAvailableBeds()">병실 찾기</button>
-                    <button class="btn" onclick="findRecommendations()">병실 추천받기</button>
+                   <div class="form-group">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="margin: 0; min-width: 80px;">배정 베드</label>
+                            <input type="text" id="selectedBed" disabled style="background: #f0f0f0; flex: 1;" placeholder="">
+                        </div>
+                    </div>
+                    <button class="btn" style="background: #17a2b8;" onclick="findAvailableBeds()">베드 선택</button>
+                    <button class="btn" style="background: #FF9800;" onclick="findRecommendations()">병실 추천받기</button>
+                    <button class="btn" onclick="addPatient()">환자 등록</button>
                 </div>
                 
                 <div id="recommendations" style="display: none;"></div>
@@ -250,8 +257,7 @@
             <div id="bedSelectionBody"></div>
         </div>
     </div>
-    
-    <script src="script.js"></script>
+
     <div class="patient-edit-modal" id="patientEditModal" style="display: none;">
         <div class="modal-content" style="max-width: 600px;">
             <span class="close" onclick="closePatientEditModal()">&times;</span>
@@ -381,9 +387,9 @@
                     <label>특이사항</label>
                     <textarea id="editPatientNotes" placeholder="알레르기, 특별 요구사항 등"></textarea>
                 </div>
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button class="btn" style="background: #28a745; flex: 1;" onclick="savePatientEdit()">저장</button>
-                    <button class="btn" style="background: #6c757d; flex: 1;" onclick="closePatientEditModal()">취소</button>
+               <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn" style="background: #28a745; flex: 1;" onclick="savePatientFromModal()">저장</button>
+                    <button class="btn" style="background: #6c757d; flex: 1;" onclick="cancelPatientModal()">취소</button>
                 </div>
             </div>
         </div>
@@ -409,5 +415,14 @@
     </div>
     <button class="floating-today-btn" onclick="goToToday()" title="오늘로 이동">오늘</button>
     <button class="floating-add-patient-btn" onclick="openNewPatientModal()" title="환자 등록">+</button>
+    <script src="js/config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/recommendation.js"></script>
+    <script src="js/patient.js"></script>
+    <script src="js/bed-selection.js"></script>
+    <script src="js/bed-move.js"></script>
+    <script src="js/export.js"></script>
+    <script src="js/ui.js"></script> 
 </body>
 </html>
