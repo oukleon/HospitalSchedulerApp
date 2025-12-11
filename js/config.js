@@ -1,0 +1,72 @@
+// ===== 병원 설정 파일 =====
+const DAYS_TO_SHOW = 10;
+
+const beds = [
+   // 10층 (재활 우선) - 1001, 1002 -> 4인실
+   {bed: '1001A', room: '1001', floor: 10, department: 'rehabilitation'},
+   {bed: '1001B', room: '1001', floor: 10, department: 'rehabilitation'},
+   {bed: '1001C', room: '1001', floor: 10, department: 'rehabilitation'},
+   {bed: '1001D', room: '1001', floor: 10, department: 'rehabilitation'},
+   {bed: '1002A', room: '1002', floor: 10, department: 'rehabilitation'},
+   {bed: '1002B', room: '1002', floor: 10, department: 'rehabilitation'},
+   {bed: '1002C', room: '1002', floor: 10, department: 'rehabilitation'},
+   {bed: '1002D', room: '1002', floor: 10, department: 'rehabilitation'},
+   {bed: '1003A', room: '1003', floor: 10, department: 'rehabilitation'},
+   {bed: '1003B', room: '1003', floor: 10, department: 'rehabilitation'},
+   {bed: '1003C', room: '1003', floor: 10, department: 'rehabilitation'},
+   {bed: '1003D', room: '1003', floor: 10, department: 'rehabilitation'},
+   {bed: '1004A', room: '1004', floor: 10, department: 'rehabilitation'},
+   {bed: '1004B', room: '1004', floor: 10, department: 'rehabilitation'},
+   {bed: '1004C', room: '1004', floor: 10, department: 'rehabilitation'},
+   {bed: '1004D', room: '1004', floor: 10, department: 'rehabilitation'},
+   {bed: '1005A', room: '1005', floor: 10, department: 'rehabilitation'},
+   {bed: '1005B', room: '1005', floor: 10, department: 'rehabilitation'},
+   {bed: '1005C', room: '1005', floor: 10, department: 'rehabilitation'},
+   {bed: '1005D', room: '1005', floor: 10, department: 'rehabilitation'},
+   {bed: '1006A', room: '1006', floor: 10, department: 'rehabilitation'},
+   
+   // 11층 (암 우선)
+   {bed: '1101A', room: '1101', floor: 11, department: 'cancer'},
+   {bed: '1102A', room: '1102', floor: 11, department: 'cancer'},
+   {bed: '1103A', room: '1103', floor: 11, department: 'cancer'},
+   {bed: '1103B', room: '1103', floor: 11, department: 'cancer'},
+   {bed: '1104A', room: '1104', floor: 11, department: 'cancer'},
+   {bed: '1104B', room: '1104', floor: 11, department: 'cancer'},
+   {bed: '1105A', room: '1105', floor: 11, department: 'cancer'},
+   {bed: '1105B', room: '1105', floor: 11, department: 'cancer'},
+   {bed: '1106A', room: '1106', floor: 11, department: 'cancer'},
+   {bed: '1106B', room: '1106', floor: 11, department: 'cancer'},
+   {bed: '1107A', room: '1107', floor: 11, department: 'cancer'},
+   {bed: '1107B', room: '1107', floor: 11, department: 'cancer'},
+   {bed: '1108A', room: '1108', floor: 11, department: 'cancer'},
+   
+   // 12층 (암 우선)
+   {bed: '1201A', room: '1201', floor: 12, department: 'cancer'},
+   {bed: '1202A', room: '1202', floor: 12, department: 'cancer'},
+   {bed: '1203A', room: '1203', floor: 12, department: 'cancer'},
+   {bed: '1203B', room: '1203', floor: 12, department: 'cancer'},
+   {bed: '1204A', room: '1204', floor: 12, department: 'cancer'},
+   {bed: '1204B', room: '1204', floor: 12, department: 'cancer'},
+   {bed: '1205A', room: '1205', floor: 12, department: 'cancer'},
+   {bed: '1205B', room: '1205', floor: 12, department: 'cancer'},
+   {bed: '1206A', room: '1206', floor: 12, department: 'cancer'},
+   {bed: '1206B', room: '1206', floor: 12, department: 'cancer'},
+   {bed: '1207A', room: '1207', floor: 12, department: 'cancer'},
+   {bed: '1207B', room: '1207', floor: 12, department: 'cancer'},
+   {bed: '1208A', room: '1208', floor: 12, department: 'cancer'},
+   
+   // 13층 (암 우선)
+   {bed: '1301A', room: '1301', floor: 13, department: 'cancer'},
+   {bed: '1302A', room: '1302', floor: 13, department: 'cancer'},
+   {bed: '1303A', room: '1303', floor: 13, department: 'cancer'},
+   {bed: '1303B', room: '1303', floor: 13, department: 'cancer'},
+   {bed: '1304A', room: '1304', floor: 13, department: 'cancer'},
+   {bed: '1304B', room: '1304', floor: 13, department: 'cancer'},
+   {bed: '1305A', room: '1305', floor: 13, department: 'cancer'},
+   {bed: '1305B', room: '1305', floor: 13, department: 'cancer'},
+   {bed: '1306A', room: '1306', floor: 13, department: 'cancer'},
+   {bed: '1306B', room: '1306', floor: 13, department: 'cancer'},
+   {bed: '1307A', room: '1307', floor: 13, department: 'cancer'},
+   {bed: '1307B', room: '1307', floor: 13, department: 'cancer'},
+   {bed: '1308A', room: '1308', floor: 13, department: 'cancer'}
+];
